@@ -7,6 +7,10 @@ sameep <- read_tsv("datos/sameep_historicos.tsv") |>
     filter(param == "turbidez") |>
     select(-param, fecha, turb = valor)
 
+inner_join(sameep, gee, by = "fecha") |>
+    distinct(fecha) |>
+    nrow()
+
 # datos GIS, obtenidos de GEE
 # https://code.earthengine.google.com/?scriptPath=users%2Fvhgauto%2FGISTAQ%3Asameep_historico
 gee <- read_tsv("datos/reflec_gee.tsv")
@@ -46,7 +50,7 @@ tibble(turb = datos$turb,
        coord_fixed()
 
 # cuadráticas
-mod2 <- lm(formula = turb ~ I(B05^3) + I(B05^2) + B05, data = datos)
+mod2 <- lm(formula = turb ~ I(log10(B05)), data = datos)
 sum2 <- summary(mod2)
 sum2
 
