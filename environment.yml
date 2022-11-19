@@ -1,0 +1,9 @@
+name: sameep
+channels:
+  - conda-forge
+  - base
+  - bioconda
+  - R
+dependencies:
+  - r-base=4.2.2
+  - r-tidyverse
