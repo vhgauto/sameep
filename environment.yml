@@ -7,3 +7,4 @@ channels:
 dependencies:
   - r-base=4.2.2
   - r-tidyverse=1.3.2
+  - r-corrr=0.4.4
