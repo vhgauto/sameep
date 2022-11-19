@@ -6,4 +6,4 @@ channels:
   - R
 dependencies:
   - r-base=4.2.2
-  - r-tidyverse
+  - r-tidyverse=1.3.2
