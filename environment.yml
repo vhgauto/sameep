@@ -15,7 +15,9 @@ dependencies:
   - r-ranger=0.14.1
   - r-metrics=0.1.4
   - r-showtext=0.9_5
+  - r-sen2r=1.5.3
+  - r-sf=1.0_7
   - r-raster=3.5_21
   - r-rgdal=1.5_32
-  - r-sf=1.0_7
-  - r-sen2r=1.5.3
+  - snakemake=7.18.2
+  - graphviz=6.0.1
