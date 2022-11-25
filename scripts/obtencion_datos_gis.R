@@ -2,7 +2,7 @@
 
 # librerías
 library(sf)
-library(sen2r)
+# library(sen2r)
 library(lubridate)
 library(glue)
 library(raster)

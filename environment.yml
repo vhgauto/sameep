@@ -1,23 +1,23 @@
-name: sameep
+name: monitoreo
 channels:
   - conda-forge
   - base
   - bioconda
   - R
 dependencies:
-  - r-base=4.2.2
+  - r-base=4.2.1
   - r-tidyverse=1.3.2
-  - r-corrr=0.4.4
-  - r-vip=0.3.2
-  - r-ggtext=0.1.2
-  - r-tidymodels=1.0.0
-  - r-doparallel=1.0.17
-  - r-ranger=0.14.1
-  - r-metrics=0.1.4
-  - r-showtext=0.9_5
   - r-sen2r=1.5.3
   - r-sf=1.0_7
   - r-raster=3.5_21
   - r-rgdal=1.5_32
-  - snakemake=7.18.2
+  - r-metbrewer=0.2.0
+  - r-ggtext=0.1.2
+  - r-scales=1.2.1
+  - r-showtext=0.9_5
+  - r-magick=2.7.3
+  - r-cowplot=1.1.1
+  - r-rmarkdown=2.17
+  - r-quarto=1.2
+  - snakemake=7.18.1
   - graphviz=6.0.1
