@@ -11,3 +11,6 @@ dependencies:
   - r-vip=0.3.2
   - r-ggtext=0.1.2
   - r-tidymodels=1.0.0
+  - r-doparallel=1.0.17
+  - r-ranger=0.14.1
+  - r-metrics=0.1.4

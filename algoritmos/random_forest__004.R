@@ -11,7 +11,7 @@ theme_set(theme_bw())
 # datos -------------------------------------------------------------------
 
 # datos SAMEEP, solo me interesa turbidez (NTU)
-sameep <- read_tsv("datos/sameep_historicos.tsv") |>
+sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
   filter(param == "turbidez") |>
   select(-param, fecha, turb = valor)
 
@@ -20,10 +20,8 @@ sameep <- read_tsv("datos/sameep_historicos.tsv") |>
 gee <- read_tsv("datos/reflec_linea_puntos_gee.tsv")
 
 # acomodo los datos, columnas -> bandas/turb/fecha
-gee_tidy <- gee |> 
+gee_tidy <- gee |>
   pivot_wider(names_from = banda, values_from = reflec)
-
-sameep_tidy <- sameep
 
 # combino los datos
 datos <- inner_join(gee_tidy, sameep_tidy, by = "fecha")
@@ -39,8 +37,8 @@ turb_test <- testing(turb_split)
 
 # receta
 # uso los datos de entrenamiento
-# considero los meses de las fechas
-turb_rec <- recipe(turb ~ ., data = turb_train)  |>
+# considero todas las bandas y las fechas (meses)
+turb_rec <- recipe(turb ~ ., data = turb_train) |>
   step_date(fecha, features = "month")
 
 turb_prep <- prep(turb_rec)
@@ -57,14 +55,14 @@ baked <- bake(turb_prep, new_data = NULL)
 tune_spec <- rand_forest(
   trees = 1000,
   mtry = tune(),
-  min_n = tune()) |> 
-  set_mode("regression") |> 
+  min_n = tune()) |>
+  set_mode("regression") |>
   set_engine("ranger")
 
 # workflow
 # útil p/manipular modelos predictivos
-tune_wf <- workflow() %>%
-  add_recipe(turb_rec) %>%
+tune_wf <- workflow() |>
+  add_recipe(turb_rec) |>
   add_model(tune_spec)
 
 # entrenamiento de hiperparámetros ----------------------------------------
@@ -88,14 +86,14 @@ tune_res <- tune_grid(
   grid = 20) # ¡¡¡LLEVA TIEMPO!!!
 
 # .metrics: rsq = R^2; rmse = root mean square error
-tune_res |> 
-  collect_metrics() |> 
+tune_res |>
+  collect_metrics() |>
   pivot_longer(cols = min_n:mtry,
                values_to = "value",
-               names_to = "parameter") |> 
+               names_to = "parameter") |>
   ggplot(aes(value, mean, color = parameter)) +
   geom_point(show.legend = FALSE) +
-  facet_grid(.metric~parameter, scales = "free", switch = "y") +
+  facet_grid(.metric ~ parameter, scales = "free", switch = "y") +
   labs(x = NULL, y = NULL)
 
 # elijo el rango que genere: rsq -> 1 & rmse -> más bajo
@@ -107,15 +105,16 @@ rf_grid <- grid_regular(
 
 set.seed(456)
 
-# afino los resultados usando la tabla de valores más acotada para 'mtry' y 'min_n'
+# afino los resultados usando la tabla de valores
+# más acotada para 'mtry' y 'min_n'
 regular_res <- tune_grid(
   tune_wf,
   resamples = turb_folds,
   grid = rf_grid) # ¡¡¡LLEVA TIEMPO!!!
 
-regular_res |> 
-  collect_metrics() |> 
-  mutate(min_n = factor(min_n)) |> 
+regular_res |>
+  collect_metrics() |>
+  mutate(min_n = factor(min_n)) |>
   ggplot(aes(mtry, mean, color = min_n)) +
   geom_line(alpha = 0.5, linewidth = 1.5) +
   geom_point() +
@@ -125,7 +124,7 @@ regular_res |>
 # modelo final ------------------------------------------------------------
 
 # los valores más altos de rsq y los valores más bajos de rmse se dan con:
-# mtry ~ 10 & min_n ~ 1
+# mtry ~ 10 ; min_n ~ 1
 
 # elijo como criterio el major (mayor) rsq (R^2)
 # mtry = 10, min_n = 1
@@ -139,24 +138,24 @@ final_rf <- finalize_model(
 # 'final_rf' contiene los hiperparámetros afinados/tuneados, p/el random forest
 
 # verifico la importancia de las variables
-final_rf |> 
-  set_engine("ranger", importance = "permutation") |> 
-  fit(turb ~ ., data = juice(turb_prep)) |> 
+final_rf |>
+  set_engine("ranger", importance = "permutation") |>
+  fit(turb ~ ., data = juice(turb_prep)) |>
   vip(geom = "col")
 
 # el mes es el parámetros MÁS importante, seguido de las bandas B05 y B04
 
 # modelado final
-final_wf <- workflow() |> 
-  add_recipe(turb_rec) |> 
+final_wf <- workflow() |>
+  add_recipe(turb_rec) |>
   add_model(final_rf)
 
 # con el último workflow, entreno una vez más el test de entrenamiento
-final_res <- final_wf |> 
+final_res <- final_wf |>
   last_fit(turb_split)
 
 # métricas del random forest, con hiperparámetros afinados
-final_res |> 
+final_res |>
   collect_metrics()
 
 # RMSE = 139
@@ -165,8 +164,8 @@ final_res |>
 # valores predichos VS valores reales (split=test)
 turb_m <- max(sameep_tidy$turb)
 
-final_res |> 
-  collect_predictions() |> 
+final_res |>
+  collect_predictions() |>
   ggplot(aes(.pred, turb)) +
   geom_point(size = 0.5, alpha = 0.5) +
   geom_abline() +
@@ -176,34 +175,35 @@ final_res |>
   )
 
 final_res %>%
-  collect_predictions() |> 
-  lm(turb ~ .pred, data = _) |> 
-  summary() # R2 = 0.9031
+  collect_predictions() |>
+  lm(turb ~ .pred, data = _) |>
+  summary() # R2 = 0.9024
 
 # turb VS fecha -----------------------------------------------------------
 
 # predicciones
-pred_rf <- final_res |> 
-  collect_predictions() |> 
+pred_rf <- final_res |>
+  collect_predictions() |>
   select(.pred, turb)
 
 # datos de testeo, con fechas
-turb_rf <- turb_test |> 
+turb_rf <- turb_test |>
   select(fecha, turb)
 
 # combino las predicciones con las fechas, grafico
-inner_join(pred_rf, turb_rf, by = "turb") |> 
+inner_join(pred_rf, turb_rf, by = "turb") |>
   ggplot(aes(x = fecha, y = .pred)) +
   geom_line(data = sameep_tidy, aes(x = fecha, y = turb),
             color = "darkgrey") +
   geom_point(size = 2, color = "darkblue", alpha = 1, shape = 4,
              show.legend = TRUE) +
   scale_x_date(date_breaks = "4 month", date_labels = "%m-%y") +
-  scale_y_continuous(breaks = seq(0, 1500, 250), 
-                     labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
+  scale_y_continuous(breaks = seq(0, 1500, 250),
+                     labels = scales::label_number(big.mark = ".",
+                     decimal.mark = ",")) +
   coord_cartesian(expand = FALSE, ylim = c(0, 1500)) +
-  labs(x = NULL, y = "Turbidez (NTU)", title = 
-         "Turbidez predecida mediante random forest") +
+  labs(x = NULL, y = "Turbidez (NTU)", title =
+         "Turbidez predecida mediante random forest, en el set de testeo") +
   theme(
     aspect.ratio = .5,
     axis.text = element_text(color = "black"),
@@ -216,53 +216,53 @@ inner_join(pred_rf, turb_rf, by = "turb") |>
 # predicción VS fecha -----------------------------------------------------
 
 # extraigo el workflow del último entrenamiento, ya afinado
-workflow_final <- final_res %>%
+workflow_final <- final_res |>
   extract_workflow()
 
 # creo el set de datos GIS para predecir su turb
 # formado a partir de: test split + GIS sin turb
-gee_new <- gee_tidy |> 
+gee_new <- gee_tidy |>
   filter(fecha > max(sameep_tidy$fecha))
 
-gee_test_new <- turb_test |> 
-  select(-turb) |> 
+gee_test_new <- turb_test |>
+  select(-turb) |>
   bind_rows(gee_new)
 
 # aplico el workflow al nuevo dataset
 pred_new <- predict(workflow_final, gee_test_new)
 
 # estadísticos
-r2 <- final_res |> 
-  collect_metrics() |> 
-  filter(.metric == "rsq") |> 
-  pull(.estimate) |> 
-  round(digits = 3) |> 
+r2 <- final_res |>
+  collect_metrics() |>
+  filter(.metric == "rsq") |>
+  pull(.estimate) |>
+  round(digits = 3) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
-rmse <- final_res |> 
-  collect_metrics() |> 
-  filter(.metric == "rmse") |> 
-  pull(.estimate) |> 
-  round(digits = 1) |> 
+rmse <- final_res |>
+  collect_metrics() |>
+  filter(.metric == "rmse") |>
+  pull(.estimate) |>
+  round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
 aa <- final_res %>%
   collect_predictions()
 
-mae <- Metrics::mae(actual = aa$turb, 
-                    predicted = aa$.pred) |> 
-  round(digits = 1) |> 
+mae <- Metrics::mae(actual = aa$turb,
+                    predicted = aa$.pred) |>
+  round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
-bias <- Metrics::bias(actual = aa$turb, 
-                      predicted = aa$.pred) |> round(digits = 1) |> 
+bias <- Metrics::bias(actual = aa$turb,
+                      predicted = aa$.pred) |> round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
-full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |> 
-  select(fecha, SAMEEP = turb, RF = .pred) |> 
+full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
+  select(fecha, SAMEEP = turb, RF = .pred) |>
   pivot_longer(cols = c(SAMEEP, RF),
                names_to = "param",
-               values_to = "turb") |> 
+               values_to = "turb") |>
   ggplot(aes(x = fecha, y = turb, color = param, shape = param)) +
   geom_vline(xintercept = range(sameep_tidy$fecha)[2],
              color = "darkgrey", linetype = 2) +
@@ -272,7 +272,7 @@ full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
   scale_x_date(breaks = seq(ymd(20170101), ymd(20230101), by = "6 month"),
                date_labels = "%b\n%y") +
   scale_y_continuous(breaks = seq(0, 1500, 250), 
-                     labels = scales::label_number(big.mark = ".", 
+                     labels = scales::label_number(big.mark = ".",
                                                    decimal.mark = ",")) +
   scale_shape_manual(values = c(4, NA)) +
   scale_color_manual(values = c("darkblue", "darkgrey")) +
@@ -285,7 +285,7 @@ full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
        comparada con <br> las mediciones diarias de 
        <span style='color:darkgrey'>**SAMEEP**</span>",
        caption = glue("R<sup>2</sup> = {r2}; RMSE = {rmse} NTU; MAE = {mae} NTU")) +
-  guides(color = guide_legend(override.aes = 
+  guides(color = guide_legend(override.aes =
           list(shape = c(4, NA), linetype = c(NA, 1), size = c(3, 9)))) +
   theme(
     axis.text = element_text(color = "black"),
