@@ -138,11 +138,33 @@ final_rf <- finalize_model(
 # 'final_rf' contiene los hiperparámetros afinados/tuneados, p/el random forest
 
 # verifico la importancia de las variables
-final_rf |>
+gg_vip <- final_rf |>
   set_engine("ranger", importance = "permutation") |>
   fit(turb ~ ., data = juice(turb_prep)) |>
-  vip(geom = "col")
+  vip(geom = "col") +
+  scale_fill_viridis_d() +
+  labs(title = "El <span style='color:darkblue'>**mes**</span> es el parámetro más
+   importante para estimar la turbidez",
+       y = "Importancia") +
+  scale_y_continuous(
+    labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
+  coord_flip(expand = FALSE, ylim = c(0, 50000)) +
+  theme(
+    aspect.ratio = .5,
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text = element_text(color = "black"),
+    plot.title = element_markdown(),
+    plot.margin = margin(5, 20, 5, 0)
+  )
 
+ggsave(plot = gg_vip,
+       filename = "figuras/vip_param__001.png",
+       width = 20,
+       height = 10,
+       units = "cm",
+       dpi = 300)
 # el mes es el parámetros MÁS importante, seguido de las bandas B05 y B04
 
 # modelado final
@@ -258,7 +280,7 @@ bias <- Metrics::bias(actual = aa$turb,
                       predicted = aa$.pred) |> round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
-full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
+gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
   select(fecha, SAMEEP = turb, RF = .pred) |>
   pivot_longer(cols = c(SAMEEP, RF),
                names_to = "param",
@@ -302,7 +324,7 @@ full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
     plot.margin = margin(5, 15, 5, 5)
   )
 
-ggsave(plot = last_plot(),
+ggsave(plot = gg_rf,
        filename = "figuras/pred_turb__001.png",
        width = 20,
        height = 10,
