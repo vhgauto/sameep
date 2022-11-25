@@ -1,4 +1,4 @@
-# librería
+# librerías
 library(lubridate)
 library(vip)
 library(ggtext)
@@ -191,8 +191,8 @@ final_res <- final_wf |>
 final_res |>
   collect_metrics()
 
-# RMSE = 139
-# R^2 = 0.902
+# RMSE: 139
+# R^2: 0.902
 
 # valores predichos VS valores reales (split=test)
 turb_m <- max(sameep_tidy$turb)
@@ -210,7 +210,7 @@ final_res |>
 final_res %>%
   collect_predictions() |>
   lm(turb ~ .pred, data = _) |>
-  summary() # R2 = 0.9024
+  summary() # R2: 0.9024
 
 # turb VS fecha -----------------------------------------------------------
 
@@ -291,7 +291,8 @@ bias <- Metrics::bias(actual = aa$turb,
                       predicted = aa$.pred) |> round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
-gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha") |>
+gg_rf <- full_join(sameep_tidy, pred_new |>
+                   bind_cols(gee_test_new), by = "fecha") |>
   select(fecha, SAMEEP = turb, RF = .pred) |>
   pivot_longer(cols = c(SAMEEP, RF),
                names_to = "param",
@@ -302,6 +303,8 @@ gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha
   geom_line(data = . %>% filter(param == "RF"), alpha = .2) +
   geom_line(data = . %>% filter(param == "SAMEEP")) +
   geom_point(size = 1, alpha = .8) +
+  # geom_richtext(aes(x = ymd(20200101), y = 1000, label = "hola"),
+  #               show.legend = FALSE) +
   scale_x_date(breaks = seq(ymd(20170101), ymd(20230101), by = "6 month"),
                date_labels = "%m\n%Y") +
   scale_y_continuous(breaks = seq(0, 1500, 250), 
@@ -317,17 +320,21 @@ gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha
        <span style='color:darkblue'>**Random Forest**</span> (RF),
        comparada con <br> las mediciones diarias de 
        <span style='color:darkgrey'>**SAMEEP**</span>",
-       caption = glue("R<sup>2</sup> = {r2}; RMSE = {rmse} NTU; MAE = {mae} NTU")) +
+       caption = glue("R<sup>2</sup> = {r2}; RMSE = {rmse} NTU;
+                      MAE = {mae} NTU")) +
   guides(color = guide_legend(override.aes =
           list(shape = c(4, NA), linetype = c(NA, 1), size = c(3, 9)))) +
   theme(
     axis.text = element_text(color = "black", family = "inter"),
+    axis.text.x = element_text(hjust = 1),
+    axis.text.y = element_text(vjust = 0),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(linewidth = .25),
     panel.background = element_rect(fill = "ivory"),
     legend.position = c(0, 1),
     legend.justification = c(-.05, 1.05),
     legend.text = element_text(family = "inter"),
+    legend.key.height = unit(0, "line"),
     legend.margin = margin(0, 0, 0, 0),
     legend.key = element_blank(),
     legend.direction = "vertical",
@@ -335,7 +342,7 @@ gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha
                                      color = "darkgrey", linewidth = .1),
     plot.title = element_markdown(family = "playfair", size = 16),
     plot.caption = element_markdown(family = "inter"),
-    plot.margin = margin(5, 15, 5, 5),
+    plot.margin = margin(5, 5, 5, 5),
     plot.background = element_rect(fill = "ivory")
   )
 
