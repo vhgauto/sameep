@@ -3,10 +3,18 @@ library(lubridate)
 library(vip)
 library(ggtext)
 library(glue)
+library(showtext)
 library(tidymodels)
 library(tidyverse)
 
+# tema general de las figuras
 theme_set(theme_bw())
+
+# fuentes
+font_add_google(name = "Playfair Display", family = "playfair") # título
+font_add_google(name = "Inter", family = "inter") # resto del texto
+showtext_auto()
+showtext_opts(dpi = 300)
 
 # datos -------------------------------------------------------------------
 
@@ -143,8 +151,8 @@ gg_vip <- final_rf |>
   fit(turb ~ ., data = juice(turb_prep)) |>
   vip(geom = "col") +
   scale_fill_viridis_d() +
-  labs(title = "El <span style='color:darkblue'>**mes**</span> es el parámetro más
-   importante para estimar la turbidez",
+  labs(title = "El <span style='color:darkblue'>**mes**</span> 
+       es el parámetro más importante para estimar la turbidez",
        y = "Importancia") +
   scale_y_continuous(
     labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
@@ -153,10 +161,13 @@ gg_vip <- final_rf |>
     aspect.ratio = .5,
     panel.grid.minor.y = element_blank(),
     panel.grid.major.y = element_blank(),
+    panel.background = element_rect(fill = "ivory"),
     axis.ticks.y = element_blank(),
-    axis.text = element_text(color = "black"),
-    plot.title = element_markdown(),
-    plot.margin = margin(5, 20, 5, 0)
+    axis.title = element_text(family = "inter"),
+    axis.text = element_text(color = "black", family = "inter"),
+    plot.title = element_markdown(family = "playfair"),
+    plot.margin = margin(5, 20, 5, 0),
+    plot.background = element_rect(fill = "ivory")
   )
 
 ggsave(plot = gg_vip,
@@ -292,7 +303,7 @@ gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha
   geom_line(data = . %>% filter(param == "SAMEEP")) +
   geom_point(size = 1, alpha = .8) +
   scale_x_date(breaks = seq(ymd(20170101), ymd(20230101), by = "6 month"),
-               date_labels = "%b\n%y") +
+               date_labels = "%m\n%Y") +
   scale_y_continuous(breaks = seq(0, 1500, 250), 
                      labels = scales::label_number(big.mark = ".",
                                                    decimal.mark = ",")) +
@@ -310,18 +321,22 @@ gg_rf <- full_join(sameep_tidy, pred_new |> bind_cols(gee_test_new), by = "fecha
   guides(color = guide_legend(override.aes =
           list(shape = c(4, NA), linetype = c(NA, 1), size = c(3, 9)))) +
   theme(
-    axis.text = element_text(color = "black"),
+    axis.text = element_text(color = "black", family = "inter"),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(linewidth = .25),
-    legend.position = c(.25, .85),
+    panel.background = element_rect(fill = "ivory"),
+    legend.position = c(0, 1),
+    legend.justification = c(-.05, 1.05),
+    legend.text = element_text(family = "inter"),
     legend.margin = margin(0, 0, 0, 0),
     legend.key = element_blank(),
     legend.direction = "vertical",
-    legend.background = element_rect(fill = "white", color = "black",
-                                     linetype = 2, linewidth = .1),
-    plot.title = element_markdown(),
-    plot.caption = element_markdown(),
-    plot.margin = margin(5, 15, 5, 5)
+    legend.background = element_rect(fill = "ivory", linetype = 2,
+                                     color = "darkgrey", linewidth = .1),
+    plot.title = element_markdown(family = "playfair", size = 16),
+    plot.caption = element_markdown(family = "inter"),
+    plot.margin = margin(5, 15, 5, 5),
+    plot.background = element_rect(fill = "ivory")
   )
 
 ggsave(plot = gg_rf,
@@ -330,8 +345,6 @@ ggsave(plot = gg_rf,
        height = 10,
        units = "cm",
        dpi = 300)
-
-browseURL("figuras/pred_turb__001.png")
 
 # intervalo de confianza?
 # browseURL("http://optimumsportsperformance.com/blog/confidence-intervals-for-random-forest-regression-using-tidymodels-sort-of/")

@@ -14,3 +14,4 @@ dependencies:
   - r-doparallel=1.0.17
   - r-ranger=0.14.1
   - r-metrics=0.1.4
+  - r-showtext=0.9_5
