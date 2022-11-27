@@ -18,5 +18,6 @@ dependencies:
   - r-sf=1.0_7
   - r-rgdal=1.5_32
   - r-raster=3.5_15
+  - r-sen2r=1.5.3
   - snakemake=7.18.2
   - graphviz=6.0.1
