@@ -1,5 +1,7 @@
 safe/
 recortes/
+.snakemake/
+dag.png
 
 # History files
 .Rhistory
