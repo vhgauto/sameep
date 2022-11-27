@@ -142,7 +142,7 @@ final_res <- final_wf |>
 final_res |>
   collect_metrics()
 
-# RMSE: 138.88
+# RMSE: 139
 # R^2: 0.9024
 
 # valores predichos VS valores reales (split=test)
@@ -213,6 +213,12 @@ bias <- Metrics::bias(actual = aa$turb,
   sub(pattern = "\\.", replacement = ",", x = _)
 
 # figuras -----------------------------------------------------------------
+
+# creo la carpeta para almacenar la firma espectral
+dir.create("figuras")
+
+# elimino las figuras anteriores
+unlink(list.files("figuras/", full.names = TRUE), recursive = TRUE)
 
 # turb SAMEEP + turb PRED vs fecha
 gg_rf <- full_join(sameep_tidy, pred_new |>
