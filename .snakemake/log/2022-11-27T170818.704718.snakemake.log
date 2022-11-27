@@ -1,0 +1,6 @@
+Building DAG of jobs...
+MissingInputException in rule render_index  in line 21 of /home/vhgauto/sameep/Snakefile:
+Missing input files for rule render_index:
+    output: index.html
+    affected files:
+        figuras/firma.png
