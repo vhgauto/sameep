@@ -1,11 +1,11 @@
+#!/usr/bin/env Rscript
+
 # librerías
 library(lubridate)
-# library(vip)
 library(ggtext)
 library(glue)
 library(showtext)
 library(tidymodels)
-# library(patchwork)
 library(tidyverse)
 
 # tema general de las figuras
@@ -227,15 +227,14 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
   geom_line(data = . %>% filter(param == "RF"), alpha = .2) +
   geom_line(data = . %>% filter(param == "SAMEEP")) +
   geom_point(size = 1, alpha = .8) +
-  scale_x_date(date_labels = "%Y") +
-  scale_y_continuous(breaks = seq(0, 1500, 250), 
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year", expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, 1500, 250),
                      labels = scales::label_number(big.mark = ".",
                                                    decimal.mark = ",")) +
   scale_shape_manual(values = c(4, NA)) +
   scale_color_manual(values = c("darkblue", "darkgrey")) +
   coord_cartesian(ylim = c(0, 1500), 
-                  xlim = c(ymd(20170101), ymd(20230101)),
-                  expand = FALSE) +
+                  xlim = c(ymd(20170101), NA)) +
   labs(x = NULL, y = "Turbidez (NTU)", color = NULL, shape = NULL,
        title = "Turbidez estimada mediante 
        <span style='color:darkblue'>**Random Forest**</span> (RF),
