@@ -7,6 +7,7 @@ library(lubridate)
 library(glue)
 library(raster)
 library(rgdal)
+library(stars)
 library(tidyverse)
 
 # día de la fecha
@@ -53,8 +54,7 @@ print(glue("\n\nDescargando producto {names(lis)}\n\n"))
 dir.create("safe")
 
 # descarga el producto
-s2_download(lis, service = "apihub", overwrite = FALSE,
-            outdir = "safe/")
+s2_download(lis, service = "apihub", overwrite = FALSE, outdir = "safe/")
 
 print(glue("\n\nProducto descargado\n\n"))
 
@@ -77,7 +77,8 @@ nube_raster <- raster(nube_porc)
 
 # cargo el vector de puntos muestrales
 print(glue("\n\nVector de puntos muestrales\n\n"))
-puntos <- shapefile("vectores/linea_puntos_LT.shp")
+
+puntos <- shapefile("vectores/linea_puntos_LT1.shp")
 
 # valores de píxel, p/los 20 sitios muestrales
 nube_pix <- raster::extract(nube_raster, puntos)
@@ -216,14 +217,14 @@ base2 <- base |>
 write_tsv(base2, file = "datos/datos_nuevos.tsv")
 
 # leo base de datos ##########################################################
-base_de_datos <- read_tsv("datos/base_de_datos_GIS.tsv")
+base_de_datos <- read_tsv("datos/base_de_datos_gis.tsv")
 
 # combino con la base de datos
 print(glue("\n\nIncorporo a la base de datos\n\n"))
-base_de_datos <- bind_rows(base_de_datos, base2)
+base_de_datos2 <- bind_rows(base_de_datos, base2)
 
 # sobreescrivo el archivo .tsv
-write_tsv(base_de_datos, file = "datos/base_de_datos_GIS.tsv")
+write_tsv(base_de_datos2, file = "datos/base_de_datos_gis.tsv")
 
 # muestro la tabla en la consola
 base2
