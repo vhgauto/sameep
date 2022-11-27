@@ -1,11 +1,11 @@
 # librerías
 library(lubridate)
-library(vip)
+# library(vip)
 library(ggtext)
 library(glue)
 library(showtext)
 library(tidymodels)
-library(patchwork)
+# library(patchwork)
 library(tidyverse)
 
 # tema general de las figuras
@@ -28,7 +28,7 @@ sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
 
 # datos GIS, obtenidos de GEE
 # https://code.earthengine.google.com/?scriptPath=users%2Fvhgauto%2FGISTAQ%3Asameep_historico
-gee <- read_tsv("datos/reflec_linea_puntos_gee.tsv")
+gee <- read_tsv("datos/base_de_datos_gis.tsv")
 
 # acomodo los datos, columnas -> bandas/turb/fecha
 gee_tidy <- gee |>
@@ -97,15 +97,6 @@ tune_res <- tune_grid(
   grid = 20) # ¡¡¡LLEVA TIEMPO!!!
 
 # .metrics: rsq = R^2; rmse = root mean square error
-# tune_res |>
-#   collect_metrics() |>
-#   pivot_longer(cols = min_n:mtry,
-#                values_to = "value",
-#                names_to = "parameter") |>
-#   ggplot(aes(value, mean, color = parameter)) +
-#   geom_point(show.legend = FALSE) +
-#   facet_grid(.metric ~ parameter, scales = "free", switch = "y") +
-#   labs(x = NULL, y = NULL)
 
 # elijo el rango que genere: rsq -> 1 & rmse -> más bajo
 # creo una tabla con todas las combinaciones para verificar
@@ -123,21 +114,9 @@ regular_res <- tune_grid(
   resamples = turb_folds,
   grid = rf_grid) # ¡¡¡LLEVA TIEMPO!!!
 
-# regular_res |>
-#   collect_metrics() |>
-#   mutate(min_n = factor(min_n)) |>
-#   ggplot(aes(mtry, mean, color = min_n)) +
-#   geom_line(alpha = 0.5, linewidth = 1.5) +
-#   geom_point() +
-#   facet_wrap(~ .metric, scales = "free") +
-#   labs(y = NULL)
-
 # modelo final ------------------------------------------------------------
 
-# los valores más altos de rsq y los valores más bajos de rmse se dan con:
-# mtry ~ 10 ; min_n ~ 1
-
-# elijo como criterio el major (mayor) rsq (R^2)
+# elijo como criterio el mayor (mayor) rsq (R^2)
 # mtry = 10, min_n = 1
 best_auc <- select_best(regular_res, metric = "rsq")
 
@@ -148,37 +127,6 @@ final_rf <- finalize_model(
 
 # 'final_rf' contiene los hiperparámetros afinados/tuneados, p/el random forest
 
-# verifico la importancia de las variables
-# gg_vip <- final_rf |>
-#   set_engine("ranger", importance = "permutation") |>
-#   fit(turb ~ ., data = juice(turb_prep)) |>
-#   vip(geom = "col") +
-#   scale_fill_viridis_d() +
-#   labs(title = "El <span style='color:darkblue'>**mes**</span> 
-#        es el parámetro más importante para estimar la turbidez",
-#        y = "Importancia") +
-#   scale_y_continuous(
-#     labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
-#   coord_flip(expand = FALSE, ylim = c(0, 50000)) +
-#   theme(
-#     aspect.ratio = .5,
-#     panel.grid.minor.y = element_blank(),
-#     panel.grid.major.y = element_blank(),
-#     panel.background = element_rect(fill = "ivory"),
-#     axis.ticks.y = element_blank(),
-#     axis.title = element_text(family = "inter"),
-#     axis.text = element_text(color = "black", family = "inter"),
-#     plot.title = element_markdown(family = "playfair"),
-#     plot.margin = margin(5, 20, 5, 0),
-#     plot.background = element_rect(fill = "ivory")
-#   )
-
-# ggsave(plot = gg_vip,
-#        filename = "figuras/gg_vip__001.png",
-#        width = 20,
-#        height = 10,
-#        units = "cm",
-#        dpi = 300)
 # el mes es el parámetros MÁS importante, seguido de las bandas B05 y B04
 
 # modelado final
@@ -194,60 +142,16 @@ final_res <- final_wf |>
 final_res |>
   collect_metrics()
 
-# RMSE: 140
-# R^2: 0.901
+# RMSE: 138.88
+# R^2: 0.9024
 
 # valores predichos VS valores reales (split=test)
 turb_m <- max(sameep_tidy$turb)
-
-# final_res |>
-#   collect_predictions() |>
-#   ggplot(aes(.pred, turb)) +
-#   geom_point(size = 0.5, alpha = 0.5) +
-#   geom_abline() +
-#   coord_fixed(xlim = c(0, turb_m), ylim = c(0, turb_m)) +
-#   theme(
-#     aspect.ratio = 1
-#   )
 
 final_res %>%
   collect_predictions() |>
   lm(turb ~ .pred, data = _) |>
   summary() # R2: 0.9015
-
-# turb VS fecha -----------------------------------------------------------
-
-# predicciones
-# pred_rf <- final_res |>
-#   collect_predictions() |>
-#   select(.pred, turb)
-
-# datos de testeo, con fechas
-# turb_rf <- turb_test |>
-#   select(fecha, turb)
-
-# combino las predicciones con las fechas, grafico
-# inner_join(pred_rf, turb_rf, by = "turb") |>
-#   ggplot(aes(x = fecha, y = .pred)) +
-#   geom_line(data = sameep_tidy, aes(x = fecha, y = turb),
-#             color = "darkgrey") +
-#   geom_point(size = 2, color = "darkblue", alpha = 1, shape = 4,
-#              show.legend = TRUE) +
-#   scale_x_date(date_breaks = "4 month", date_labels = "%m-%y") +
-#   scale_y_continuous(breaks = seq(0, 1500, 250),
-#                      labels = scales::label_number(big.mark = ".",
-#                      decimal.mark = ",")) +
-#   coord_cartesian(expand = FALSE, ylim = c(0, 1500)) +
-#   labs(x = NULL, y = "Turbidez (NTU)", title =
-#          "Turbidez predecida mediante random forest, en el set de testeo") +
-#   theme(
-#     aspect.ratio = .5,
-#     axis.text = element_text(color = "black"),
-#     panel.grid.minor = element_blank(),
-#     panel.grid.major = element_line(linewidth = .25),
-#     plot.title = element_markdown(),
-#     legend.position = "top"
-#   )
 
 # predicción VS fecha -----------------------------------------------------
 
@@ -256,13 +160,9 @@ workflow_final <- final_res |>
   extract_workflow()
 
 # creo el set de datos GIS para predecir turb
-# formado a partir de: test split + nuevos datos
-# gee_new <- gee_tidy |>
-#   filter(fecha > max(sameep_tidy$fecha))
-gee_new <- read_tsv("datos/datos_nuevos.tsv") |> 
-  # tabla ancha
-  pivot_wider(names_from = banda,
-              values_from = reflec)
+# formado a partir de: test split + datos SIN turb
+gee_new <- gee_tidy |>
+  filter(fecha > max(sameep_tidy$fecha))
 
 gee_test_new <- turb_test |>
   select(-turb) |>
@@ -276,13 +176,14 @@ pred_new <- predict(workflow_final, gee_test_new)
 pred_turb <- full_join(sameep_tidy, pred_new |>
                          bind_cols(gee_test_new), by = "fecha")
 
-dato_turb <- pred_turb |> 
-  filter(fecha == hoy) |> 
+dato_turb <- pred_turb |>
+  filter(fecha == hoy) |>
   pull(.pred)
 
-dato_turb2 <- format(round(dato_turb, 1), nsmall = 1) |> sub(pattern = "\\.",
-                                                             replacement = ",",
-                                                             x = _)
+dato_turb2 <- format(round(dato_turb, 1),
+                           nsmall = 1) |> sub(pattern = "\\.",
+                                              replacement = ",",
+                                              x = _)
 
 # estadísticos
 r2 <- final_res |>
@@ -311,6 +212,9 @@ bias <- Metrics::bias(actual = aa$turb,
                       predicted = aa$.pred) |> round(digits = 1) |>
   sub(pattern = "\\.", replacement = ",", x = _)
 
+# figuras -----------------------------------------------------------------
+
+# turb SAMEEP + turb PRED vs fecha
 gg_rf <- full_join(sameep_tidy, pred_new |>
                    bind_cols(gee_test_new), by = "fecha") |>
   select(fecha, SAMEEP = turb, RF = .pred) |>
@@ -323,10 +227,7 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
   geom_line(data = . %>% filter(param == "RF"), alpha = .2) +
   geom_line(data = . %>% filter(param == "SAMEEP")) +
   geom_point(size = 1, alpha = .8) +
-  # geom_richtext(aes(x = ymd(20200101), y = 1000, label = "hola"),
-  #               show.legend = FALSE) +
-  scale_x_date(breaks = seq(ymd(20170101), ymd(20230101), by = "6 month"),
-               date_labels = "%m\n%Y") +
+  scale_x_date(date_labels = "%Y") +
   scale_y_continuous(breaks = seq(0, 1500, 250), 
                      labels = scales::label_number(big.mark = ".",
                                                    decimal.mark = ",")) +
@@ -348,7 +249,6 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
     axis.text = element_text(color = "black", family = "inter"),
     axis.text.x = element_text(hjust = 1),
     axis.text.y = element_text(vjust = 0),
-    panel.grid.minor = element_blank(),
     panel.grid.major = element_line(linewidth = .25),
     panel.background = element_rect(fill = "ivory"),
     legend.position = c(0, 1),
@@ -366,11 +266,19 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
     plot.background = element_rect(fill = "ivory")
   )
 
+ggsave(plot = gg_rf,
+       filename = "figuras/gg_rf__001.png",
+       width = 20,
+       height = 10,
+       units = "cm",
+       dpi = 300)
 
-gg_turb <- dato_turb2 |> 
-  as_tibble() |> 
-  ggplot(aes(x = 0, y = 0, 
-             label = glue("<span style='font-size:12pt'>Turbidez = {value} NTU</span><br>
+# turb PRED, cuadrado
+gg_turb <- dato_turb2 |>
+  as_tibble() |>
+  ggplot(aes(x = 0, y = 0,
+             label = glue("<span style='font-size:20pt'>Turbidez = 
+                          {value} NTU</span><br>
                           <span style='font-size:7pt'>Fecha = 
                           {format(hoy, '%d/%m/%Y')}</span>"))) +
   geom_richtext(label.color = NA, fill = "ivory",
@@ -378,17 +286,13 @@ gg_turb <- dato_turb2 |>
   coord_fixed(xlim = c(0, 10), ylim = c(-5, 5)) +
   theme_void() +
   theme(
-    # panel.grid = element_line(),
-    # axis.text = element_text(),
     aspect.ratio = 1,
-    plot.background = element_rect(fill = "ivory", color = "darkblue")
+    plot.background = element_rect(fill = "ivory", color = NA)
   )
 
-gg_rf & gg_turb
-
-ggsave(plot = gg_rf,
-       filename = "figuras/gg_rf__001.png",
-       width = 20,
+ggsave(plot = gg_turb,
+       filename = "figuras/gg_turb__001.png",
+       width = 10,
        height = 10,
        units = "cm",
        dpi = 300)
@@ -399,4 +303,4 @@ ggsave(plot = gg_rf,
 
 # vetiver -----------------------------------------------------------------
 
-browseURL("https://vetiver.rstudio.com/")
+# browseURL("https://vetiver.rstudio.com/")
