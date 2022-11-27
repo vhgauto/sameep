@@ -10,7 +10,9 @@ library(rgdal)
 library(tidyverse)
 
 # día de la fecha
-hoy <- ymd(20221122) - 1 # ymd(20221102) # today() - 1
+hoy <- ymd(20221122) # ymd(20221102) # today() - 1
+# 20221112 -> NUBE
+# 20221122 -> sin NUBE
 
 # sitio de interés
 lr <- st_sfc(st_point(c(305789.86931, 6965069.94723)), crs = 32721)
@@ -34,13 +36,11 @@ print(glue("{f_msj('DESCARGA DE PRODUCTO')}"))
 write_scihub_login('vhgauto', '6EVmlMfiDlrA7VzVBAEU') 
 
 # busco producto Sentinel-2 MSI L2A, tile 21JUK, vía 'scihub'
-lis <- s2_list(
-               spatial_extent = lr,
+lis <- s2_list(spatial_extent = lr,
                time_interval = c(hoy, hoy),
                level = "L2A",
                tile = "21JUK",
-               server = "scihub"
-               )
+               server = "scihub")
 
 # condición de ERROR
 if (length(lis) == 0) {
@@ -57,6 +57,40 @@ s2_download(lis, service = "apihub", overwrite = FALSE,
             outdir = "safe/")
 
 print(glue("\n\nProducto descargado\n\n"))
+
+# VERIFICACIÓN DE NUBES
+
+print(glue("\n\nVerifico nubosidad en la región de interés\n\n"))
+
+# raster con porcentaje de nubes
+nube_porc <-
+  list.files(file.path(list.files(
+    file.path(getwd(), "safe",
+              names(lis), "GRANULE"), full.names = TRUE
+  ),
+  "QI_DATA"),
+  full.names = TRUE,
+  pattern = "MSK_CLDPRB_20m")
+
+# cargo el ráster con los porcetajes de nubes, por píxel
+nube_raster <- raster(nube_porc)
+
+# cargo el vector de puntos muestrales
+print(glue("\n\nVector de puntos muestrales\n\n"))
+puntos <- shapefile("vectores/linea_puntos_LT.shp")
+
+# valores de píxel, p/los 20 sitios muestrales
+nube_pix <- raster::extract(nube_raster, puntos)
+
+# condición de STOP
+if (mean(nube_pix) != 0) {
+  stop(glue("{f_msj('PRESENCIA DE NUBES')}"))
+}
+
+# ausencia de nubes (OK!)
+if (mean(nube_pix) == 0) {
+  stop(glue("{f_msj('IMAGEN SIN NUBES')}"))
+}
 
 # RECORTE DE PRODUCTO
 
@@ -122,8 +156,11 @@ subset_stack <-
                     subset_B07, subset_B08, subset_B8A,
                     subset_B11, subset_B12)
 
-names(subset_stack) <- c("B01", "B02", "B03", "B04", "B05", "B06",
-                         "B07", "B08", "B8A", "B11", "B12")
+# nombre correcto de bandas, en el orden adecuado
+nombre_banda <- c("B01", "B02", "B03", "B04", "B05", "B06",
+                  "B07", "B08", "B8A", "B11", "B12")
+
+names(subset_stack) <- nombre_banda
 
 # creo la carpeta del recorte
 # creo la carpeta de descarga
@@ -131,12 +168,10 @@ dir.create("recortes")
 
 # escribir el stack
 print(glue("\n\nEscribo el stack de bandas recortado\n\n"))
-writeRaster(
-    subset_stack,
-    filename = "recortes/recorte.tif",
-    format = "GTiff",
-    overwrite = TRUE
-)
+writeRaster(subset_stack,
+            filename = "recortes/recorte.tif",
+            format = "GTiff",
+            overwrite = TRUE)
 
 # EXTRACCIÓN
 
@@ -149,57 +184,49 @@ ras1 <- "recortes/recorte.tif"
 # levanto el stack
 rast <- raster::stack(ras1)
 
-# cargo el vector de puntos muestrales
-print(glue("\n\nVector de puntos muestrales\n\n"))
-puntos <- shapefile("vectores/linea_puntos_LT.shp")
-
 # creo el data.frame con los datos de valor de pixel
 # nombre de las filas del data.frame
-nomb_row <- c("B01", "B02", "B03", "B04", "B05", "B06",
-              "B07", "B08", "B8A", "B11", "B12")
 
 # extraigo los valores de reflectancia de superficie del ráster
 print(glue("\n\nExtraigo los valores de p\u00EDxel\n\n"))
 base <- raster::extract(rast, puntos)
 
-# canvierto a data.frame y agrego columna con los puntos
-base <- data.frame(base, punto = c("LR1", "LR2", "LR3", "LT"))
-
-# arreglo los datos
-base <- base |>
-        pivot_longer(cols = -punto,
-                     values_to = "firma",
-                     names_to = "param") |>
-        pivot_wider(id_cols = param,
-                    values_from = firma,
-                    names_from = punto) |>
-        # cambio el nombre de las bandas
-        mutate(param = nomb_row) |>
-        # factor de escala
-        mutate(LR1 = LR1 / 10000,
-               LR2 = LR2 / 10000,
-               LR3 = LR3 / 10000,
-               LT = LT / 10000) |>
-        # agrego la fecha dada
-        mutate(fecha = ymd(hoy)) |>
-        # reacomodo el orden de las columnas
-        dplyr::select(fecha, param, LR1, LR2, LR3, LT)
+# convierto a data.frame y agrego columna con los 20 puntos
+base2 <- base |> 
+  as_tibble() |> 
+  # agrego la fecha
+  mutate(fecha = hoy) |> 
+  # agrego los nombres de bandas
+  rename("B01" = 1, "B02" = 2, "B03" = 3, "B04" = 4, "B05" = 5, "B06" = 6,
+         "B07" = 7, "B08" = 8, "B8A" = 9, "B11" = 10, "B12" = 11) |> 
+  # tabla larga
+  pivot_longer(cols = -fecha,
+               names_to = "banda",
+               values_to = "reflec") |> 
+  # premedio diario, por banda
+  group_by(fecha, banda) |> 
+  summarise(reflec = mean(reflec), .groups = "drop") |> 
+  # acomodo las bandas
+  mutate(banda = factor(banda, levels = nombre_banda)) |> 
+  arrange(banda) |> 
+  # factor de escala
+  mutate(reflec = reflec/10000)
 
 # escribo los datos nuevos
-write_tsv(base, file = "datos/datos_nuevos.tsv")
+write_tsv(base2, file = "datos/datos_nuevos.tsv")
 
-# leo base de datos
-base_de_datos <- read_tsv("datos/base_de_datos.tsv")
+# leo base de datos ##########################################################
+base_de_datos <- read_tsv("datos/base_de_datos_GIS.tsv")
 
 # combino con la base de datos
 print(glue("\n\nIncorporo a la base de datos\n\n"))
-base_de_datos <- bind_rows(base_de_datos, base)
+base_de_datos <- bind_rows(base_de_datos, base2)
 
 # sobreescrivo el archivo .tsv
-write_tsv(base_de_datos, file = "datos/base_de_datos.tsv")
+write_tsv(base_de_datos, file = "datos/base_de_datos_GIS.tsv")
 
 # muestro la tabla en la consola
-base
+base2
 
 # elimino el SAFE y el recorte
 print(glue("\n\nElimino recorte\n\n"))
