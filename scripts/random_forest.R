@@ -146,13 +146,13 @@ final_res |>
   collect_metrics()
 
 # RMSE: 139
-# R^2: 0.9024
+# R^2: 0.9031
 
 # valores predichos VS valores reales (split=test)
 final_res %>%
   collect_predictions() |>
   lm(turb ~ .pred, data = _) |>
-  summary() # R2: 0.9015
+  summary() # R2: 0.9031
 
 # predicción VS fecha -----------------------------------------------------
 

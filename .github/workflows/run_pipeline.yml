@@ -1,8 +1,8 @@
 name: Ejecuto el Proyecto GISTAQ-SAMEEP 2020
 run-name: ${{ github.actor }} está ejecutando snakemake 🐍
-on: [push]
-  # schedule:
-  # - cron: '0 10 * * *'
+on: # [push]
+  schedule:
+  - cron: '0 18 * * *'
 jobs:
   Ejecuto-Proyecto-GISTAQ-SAMEEP-2020:
     runs-on: ubuntu-latest
