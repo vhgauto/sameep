@@ -25,7 +25,7 @@ library(lubridate)
 }
 
 .main-container {
-    max-width: 60%;
+    max-width: 50%;
 }
 
 body {

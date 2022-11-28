@@ -19,7 +19,7 @@ showtext_opts(dpi = 300)
 
 # datos -------------------------------------------------------------------
 
-hoy <- ymd(20221127) # today() - 1
+# hoy <- today() # ymd(20221127) # today() - 1
 
 # datos SAMEEP, solo me interesa turbidez (NTU)
 sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
@@ -149,8 +149,6 @@ final_res |>
 # R^2: 0.9024
 
 # valores predichos VS valores reales (split=test)
-turb_m <- max(sameep_tidy$turb)
-
 final_res %>%
   collect_predictions() |>
   lm(turb ~ .pred, data = _) |>
@@ -164,6 +162,10 @@ workflow_final <- final_res |>
 
 # creo el set de datos GIS para predecir turb
 # formado a partir de: test split + datos SIN turb
+fecha_turb <- read_tsv("datos/datos_nuevos.tsv") |>
+  distinct(fecha) |>
+  pull(fecha)
+
 gee_new <- gee_tidy |>
   filter(fecha > max(sameep_tidy$fecha))
 
@@ -180,7 +182,7 @@ pred_turb <- full_join(sameep_tidy, pred_new |>
                          bind_cols(gee_test_new), by = "fecha")
 
 dato_turb <- pred_turb |>
-  filter(fecha == hoy) |>
+  filter(fecha == fecha_turb) |>
   pull(.pred)
 
 dato_turb2 <- format(round(dato_turb, 1),
@@ -217,6 +219,15 @@ bias <- Metrics::bias(actual = aa$turb,
 
 # figuras -----------------------------------------------------------------
 
+# máx eje vertical
+turb_m <- max(sameep_tidy$turb) |> round(digits = -2)
+
+# máx eje horizontal
+fecha_m <- max(gee_tidy$fecha) |> ceiling_date(unit = "month")
+
+# etiquta R^2
+etq <- tibble(x = fecha_m, y = turb_m, label = glue("R<sup>2</sup> = {r2}"))
+
 # creo la carpeta para almacenar la firma espectral
 dir.create("figuras")
 
@@ -236,21 +247,27 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
   geom_line(data = . %>% filter(param == "RF"), alpha = .2) +
   geom_line(data = . %>% filter(param == "SAMEEP")) +
   geom_point(size = 1, alpha = .8) +
+  geom_richtext(data = etq, aes(x = x, y = y, label = label),
+                inherit.aes = FALSE, show.legend = FALSE,
+                hjust = 1, vjust = 1, fill = NA, label.color = NA,
+                family = "inter", size = 3) +
   scale_x_date(date_labels = "%Y", date_breaks = "1 year", expand = c(0, 0)) +
-  scale_y_continuous(breaks = seq(0, 1500, 250),
+  scale_y_continuous(breaks = seq(0, turb_m, 250),
                      labels = scales::label_number(big.mark = ".",
                                                    decimal.mark = ",")) +
   scale_shape_manual(values = c(4, NA)) +
   scale_color_manual(values = c("darkblue", "darkgrey")) +
-  coord_cartesian(ylim = c(0, 1500), 
-                  xlim = c(ymd(20170101), NA)) +
+  coord_cartesian(ylim = c(0, turb_m),
+                  xlim = c(ymd(20170101), fecha_m),
+                  expand = FALSE) +
   labs(x = NULL, y = "Turbidez (NTU)", color = NULL, shape = NULL,
        title = "Turbidez estimada mediante 
        <span style='color:darkblue'>**Random Forest**</span> (RF),
        comparada con <br> las mediciones diarias de 
        <span style='color:darkgrey'>**SAMEEP**</span>",
-       caption = glue("R<sup>2</sup> = {r2}; RMSE = {rmse} NTU;
-                      MAE = {mae} NTU")) +
+       subtitle = glue("Actualizado al {format(fecha_turb, '%d/%m/%Y')}"),
+       caption = glue("{format(now(tzone = 'America/Argentina/Buenos_Aires'), 
+                        '%d/%m/%Y %T')}")) +
   guides(color = guide_legend(override.aes =
           list(shape = c(4, NA), linetype = c(NA, 1), size = c(3, 9)))) +
   theme(
@@ -269,7 +286,8 @@ gg_rf <- full_join(sameep_tidy, pred_new |>
     legend.background = element_rect(fill = "ivory", linetype = 2,
                                      color = "darkgrey", linewidth = .1),
     plot.title = element_markdown(family = "playfair", size = 16),
-    plot.caption = element_markdown(family = "inter"),
+    plot.subtitle = element_markdown(family = "inter", size = 8),
+    plot.caption = element_markdown(family = "inter", size = 6),
     plot.margin = margin(5, 5, 5, 5),
     plot.background = element_rect(fill = "ivory")
   )
@@ -288,14 +306,17 @@ gg_turb <- dato_turb2 |>
              label = glue("<span style='font-size:20pt'>Turbidez = 
                           {value} NTU</span><br>
                           <span style='font-size:7pt'>Fecha = 
-                          {format(hoy, '%d/%m/%Y')}</span>"))) +
+                          {format(fecha_turb, '%d/%m/%Y')}</span>"))) +
   geom_richtext(label.color = NA, fill = "ivory",
                 family = "inter", hjust = 0) +
   coord_fixed(xlim = c(0, 10), ylim = c(-5, 5)) +
+  labs(caption = glue("{format(now(tzone = 'America/Argentina/Buenos_Aires'), 
+                        '%d/%m/%Y %T')}")) +
   theme_void() +
   theme(
     aspect.ratio = 1,
-    plot.background = element_rect(fill = "ivory", color = NA)
+    plot.background = element_rect(fill = "ivory", color = NA),
+    plot.caption = element_markdown(family = "inter", size = 6)
   )
 
 ggsave(plot = gg_turb,
