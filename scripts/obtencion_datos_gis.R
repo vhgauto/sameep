@@ -85,12 +85,18 @@ nube_pix <- raster::extract(nube_raster, puntos)
 
 # condición de STOP
 if (mean(nube_pix) != 0) {
-  stop(glue("{f_msj('PRESENCIA DE NUBES')}"))
+  print(glue("{f_msj('PRESENCIA DE NUBES')}"))
+
+  # elimino el SAFE
+  print(glue("\n\nElimino recorte\n\n"))
+  unlink(list.files(path = "safe", full.names = TRUE), recursive = TRUE)
+
+  stop()
 }
 
 # ausencia de nubes (OK!)
 if (mean(nube_pix) == 0) {
-  stop(glue("{f_msj('IMAGEN SIN NUBES')}"))
+  print(glue("\n\nImagen sin nubes\n\n"))
 }
 
 # RECORTE DE PRODUCTO
