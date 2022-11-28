@@ -49,7 +49,7 @@ turb_test <- testing(turb_split)
 # receta
 # uso los datos de entrenamiento
 # considero todas las bandas y las fechas (meses)
-turb_rec <- recipe(turb ~ ., data = turb_train) |>
+turb_rec <- recipe(as.formula(paste("turb", "~ .")), data = turb_train) |>
   step_date(fecha, features = "month")
 
 turb_prep <- prep(turb_rec)
