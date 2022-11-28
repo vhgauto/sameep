@@ -7,13 +7,12 @@ library(lubridate)
 library(glue)
 library(raster)
 library(rgdal)
-library(stars)
 library(tidyverse)
 
 # día de la fecha
-hoy <- ymd(20221122) # ymd(20221102) # today() - 1
-# 20221112 -> NUBE
-# 20221122 -> sin NUBE
+hoy <- ymd(20221127) # ymd(20221102) # today() - 1
+# 20221112: NUBE
+# 20221122: sin NUBE
 
 # sitio de interés
 lr <- st_sfc(st_point(c(305789.86931, 6965069.94723)), crs = 32721)
@@ -199,25 +198,25 @@ print(glue("\n\nExtraigo los valores de p\u00EDxel\n\n"))
 base <- raster::extract(rast, puntos)
 
 # convierto a data.frame y agrego columna con los 20 puntos
-base2 <- base |> 
-  as_tibble() |> 
+base2 <- base |>
+  as_tibble() |>
   # agrego la fecha
-  mutate(fecha = hoy) |> 
+  mutate(fecha = hoy) |>
   # agrego los nombres de bandas
   rename("B01" = 1, "B02" = 2, "B03" = 3, "B04" = 4, "B05" = 5, "B06" = 6,
-         "B07" = 7, "B08" = 8, "B8A" = 9, "B11" = 10, "B12" = 11) |> 
+         "B07" = 7, "B08" = 8, "B8A" = 9, "B11" = 10, "B12" = 11) |>
   # tabla larga
   pivot_longer(cols = -fecha,
                names_to = "banda",
-               values_to = "reflec") |> 
+               values_to = "reflec") |>
   # premedio diario, por banda
-  group_by(fecha, banda) |> 
-  summarise(reflec = mean(reflec), .groups = "drop") |> 
+  group_by(fecha, banda) |>
+  summarise(reflec = mean(reflec), .groups = "drop") |>
   # acomodo las bandas
-  mutate(banda = factor(banda, levels = nombre_banda)) |> 
-  arrange(banda) |> 
+  mutate(banda = factor(banda, levels = nombre_banda)) |>
+  arrange(banda) |>
   # factor de escala
-  mutate(reflec = reflec/10000)
+  mutate(reflec = reflec / 10000)
 
 # escribo los datos nuevos
 write_tsv(base2, file = "datos/datos_nuevos.tsv")
@@ -236,7 +235,7 @@ write_tsv(base_de_datos2, file = "datos/base_de_datos_gis.tsv")
 base2
 
 # elimino el SAFE y el recorte
-print(glue("\n\nElimino recorte\n\n"))
+print(glue("\n\nElimino rasters\n\n"))
 unlink(list.files(path = "safe", full.names = TRUE), recursive = TRUE)
 unlink(list.files(path = "recortes", full.names = TRUE), recursive = TRUE)
 

@@ -19,7 +19,7 @@ showtext_opts(dpi = 300)
 
 # datos -------------------------------------------------------------------
 
-hoy <- ymd(20221122) # today() - 1
+hoy <- ymd(20221127) # today() - 1
 
 # datos SAMEEP, solo me interesa turbidez (NTU)
 sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
@@ -32,7 +32,9 @@ gee <- read_tsv("datos/base_de_datos_gis.tsv")
 
 # acomodo los datos, columnas -> bandas/turb/fecha
 gee_tidy <- gee |>
-  pivot_wider(names_from = banda, values_from = reflec)
+  # distinct() |>
+  pivot_wider(names_from = banda, values_from = reflec) |>
+  unnest(cols = everything())
 
 # combino los datos
 datos <- inner_join(gee_tidy, sameep_tidy, by = "fecha")
@@ -49,7 +51,8 @@ turb_test <- testing(turb_split)
 # receta
 # uso los datos de entrenamiento
 # considero todas las bandas y las fechas (meses)
-turb_rec <- recipe(turb ~ ., data = turb_train) %>%
+turb_rec <- recipes::recipe(turb ~ B01 + B02 + B03 + B04 + B05 + B06 +
+                   B07 + B08 + B8A + B11 + B12 + fecha, data = turb_train) |>
   step_date(fecha, features = "month")
 
 turb_prep <- prep(turb_rec)
