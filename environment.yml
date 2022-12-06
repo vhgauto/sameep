@@ -15,5 +15,6 @@ dependencies:
   - r-rgdal=1.5_32
   - r-raster=3.5_21
   - r-sen2r=1.5.3
+  - r-randomforest=4.7_1.1
   - snakemake=7.18.2
   - graphviz=6.0.1

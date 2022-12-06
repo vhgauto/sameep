@@ -44,16 +44,16 @@ datos <- inner_join(gee_tidy, sameep_tidy, by = "fecha")
 set.seed(123)
 
 # división de los datos
-turb_split <- initial_split(datos, strata = turb)
+turb_split <- initial_time_split(datos, strata = turb)
 turb_train <- training(turb_split)
 turb_test <- testing(turb_split)
 
 # receta
 # uso los datos de entrenamiento
 # considero todas las bandas y las fechas (meses)
-turb_rec <- recipes::recipe(turb ~ B01 + B02 + B03 + B04 + B05 + B06 +
-                   B07 + B08 + B8A + B11 + B12 + fecha, data = turb_train) |>
-  step_date(fecha, features = "month")
+turb_rec <- recipe(turb ~ ., data = turb_train) |>
+  step_date(fecha, features = "month") |>
+  step_rm(fecha)
 
 turb_prep <- prep(turb_rec)
 baked <- bake(turb_prep, new_data = NULL)
@@ -119,8 +119,8 @@ regular_res <- tune_grid(
 
 # modelo final ------------------------------------------------------------
 
-# elijo como criterio el mayor (mayor) rsq (R^2)
-# mtry = 10, min_n = 1
+# elijo como criterio el mayor (~ 1) rsq (R^2)
+# mtry = 10, min_n = 5
 best_auc <- select_best(regular_res, metric = "rsq")
 
 # actualizo el modelo con los resultados del afinamiento de los hiperparámetros
@@ -145,8 +145,168 @@ final_res <- final_wf |>
 final_res |>
   collect_metrics()
 
-# RMSE: 139
-# R^2: 0.9031
+# RMSE: 146.
+# R^2: 0.916
+
+# c/los hiperparámetros afinados, paso a {randomForest}
+best_mtry <- best_auc$mtry
+beat_min_n <- best_auc$min_n
+
+# nuevo set de entrenamiento, con los meses, sin la fecha
+turb_train2 <- turb_train |>
+  mutate(mes = month(fecha)) |>
+  select(-fecha)
+
+rf_refit <- randomForest::randomForest(turb ~ ., data = turb_train2, 
+                                       mtry = best_mtry,
+                                       nodesize = beat_min_n,
+                                       ntree = 1000)
+
+# estimación del testing split
+turb_test2 <- turb_test |> 
+  mutate(mes = month(fecha)) |> 
+  select(-fecha)
+
+# predicciones, de todos los árboles
+pred.rf <- predict(rf_refit, turb_test2, predict.all = TRUE)
+
+# R^2
+tibble(turb = turb_test$turb,
+       pred = pred.rf$aggregate) |>
+  lm(turb ~ pred, data = _) |>
+  summary() |>
+  broom::glance() |>
+  select(r.squared) |>
+  pull()
+# R^2 =  0.9170002
+
+# figura SAMEEP vs RF (c/intervalos)
+# límites superior e inferior
+pred_inf <- map_dbl(.x = 1:nrow(turb_test2),
+                    ~ mean(pred.rf$individual[.x, ]) -
+                    1.96 * sd(pred.rf$individual[.x, ]))
+
+pred_sup <- map_dbl(.x = 1:nrow(turb_test2),
+                    ~ mean(pred.rf$individual[.x, ]) +
+                    1.96 * sd(pred.rf$individual[.x, ]))
+
+# en un único tibble: fecha, turb, pred, pred_sup & pred_inf
+# del test split
+turb_nuevos <- tibble(fecha = turb_test$fecha,
+       turb = turb_test$turb,
+       pred = pred.rf$aggregate,
+       pred_inf = pred_inf,
+       pred_sup = pred_sup)
+
+# R^2
+r2 <- lm(turb ~ pred, data = turb_nuevos) |>
+  summary() %>%
+  .$r.squared |>
+  round(digits = 3) |>
+  sub(pattern = "\\.", replacement = ",", x = _)
+
+# máx eje vertical
+turb_m <- max(sameep_tidy$turb) |> round(digits = -2)
+
+# máx eje horizontal
+fecha_m <- max(gee_tidy$fecha) |> ceiling_date(unit = "month")
+
+# etiquta R^2
+etq <- tibble(x = ymd(20211001),
+              y = turb_m,
+              label = glue("R<sup>2</sup> = {r2}<br>{{randomForest}}"))
+
+fecha_turb <- read_tsv("datos/datos_nuevos.tsv") |>
+  distinct(fecha) |>
+  pull(fecha)
+  
+# creo la carpeta para almacenar la firma espectral
+dir.create("figuras")
+
+gg_test_RF <- turb_nuevos |>
+  select(fecha, SAMEEP = turb, RF = pred, pred_inf, pred_sup) |>
+  pivot_longer(cols = c(SAMEEP, RF),
+               names_to = "param",
+               values_to = "turb") |> 
+  ggplot(aes(x = fecha, y = turb, color = param, shape = param)) +
+  geom_line(data = . %>% filter(param == "SAMEEP")) +
+  geom_point(size = 1, alpha = .8) +
+  geom_errorbar(data = . %>% filter(param == "RF"),
+                aes(x = fecha, ymin = pred_inf, ymax = pred_sup),
+                inherit.aes = FALSE, alpha = 1, color = "darkblue",
+                linewidth = .1, width = 2) +
+  geom_richtext(data = etq, aes(x = x, y = y, label = label),
+                inherit.aes = FALSE, show.legend = FALSE,
+                hjust = 1, vjust = 1, fill = NA, label.color = NA,
+                family = "inter", size = 3) +
+  geom_text(aes(x = ymd(20190101), y = 1000, label = "OPCION 1"),
+            show.legend = FALSE) +
+  scale_x_date(date_labels = "%m\n%Y", date_breaks = "1 month", expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(0, turb_m, 250),
+                     labels = scales::label_number(big.mark = ".",
+                                                   decimal.mark = ",")) +
+  scale_shape_manual(values = c(20, NA)) +
+  scale_color_manual(values = c("darkblue", "darkgrey")) +
+  coord_cartesian(ylim = c(0, turb_m),
+                  xlim = c(min(turb_test$fecha), ymd(20211001)),
+                  expand = FALSE) +
+  labs(x = NULL, y = "Turbidez (NTU)", color = NULL, shape = NULL,
+       title = "Turbidez estimada mediante 
+       <span style='color:darkblue'>**Random Forest**</span> (RF),
+       comparada con <br> las mediciones diarias de 
+       <span style='color:darkgrey'>**SAMEEP**</span>",
+       subtitle = glue("Actualizado al {format(fecha_turb, '%d/%m/%Y')}"),
+       caption = glue("{format(now(tzone = 'America/Argentina/Buenos_Aires'), 
+                        '%d/%m/%Y %T')}")) +
+  guides(color = guide_legend(override.aes =
+                                list(shape = c(4, NA), linetype = c(NA, 1), size = c(3, 9)))) +
+  theme(
+    axis.text = element_text(color = "black", family = "inter"),
+    axis.text.x = element_text(hjust = 1),
+    axis.text.y = element_text(vjust = 0),
+    panel.grid.major = element_line(linewidth = .25),
+    panel.grid.minor.y = element_blank(),
+    panel.background = element_rect(fill = "ivory"),
+    legend.position = c(0, 1),
+    legend.justification = c(-.05, 1.05),
+    legend.text = element_text(family = "inter"),
+    legend.key.height = unit(0, "line"),
+    legend.margin = ggplot2::margin(0, 0, 0, 0),
+    legend.key = element_blank(),
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "ivory", linetype = 2,
+                                     color = "darkgrey", linewidth = .1),
+    plot.title = element_markdown(family = "playfair", size = 16),
+    plot.subtitle = element_markdown(family = "inter", size = 8),
+    plot.caption = element_markdown(family = "inter", size = 6),
+    plot.margin = ggplot2::margin(5, 5, 5, 5),
+    plot.background = element_rect(fill = "ivory")
+  )
+
+ggsave(plot = gg_test_RF,
+       filename = "figuras/gg_test_RF_001.png",
+       width = 20,
+       height = 10,
+       units = "cm",
+       dpi = 300)
+
+browseURL("figuras/gg_test_RF_001.png")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # valores predichos VS valores reales (split=test)
 final_res %>%
