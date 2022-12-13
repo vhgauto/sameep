@@ -290,24 +290,6 @@ ggsave(plot = gg_test_RF,
        units = "cm",
        dpi = 300)
 
-browseURL("figuras/gg_test_RF_001.png")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # valores predichos VS valores reales (split=test)
 final_res %>%
   collect_predictions() |>

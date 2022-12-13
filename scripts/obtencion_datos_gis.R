@@ -10,7 +10,7 @@ library(rgdal)
 library(tidyverse)
 
 # día de la fecha
-hoy <- today() -1 # ymd(20221127) # today() - 1
+hoy <- ymd(20221202) # ymd(20221127) # today() - 1
 # 20221112: NUBE
 # 20221122: sin NUBE
 
