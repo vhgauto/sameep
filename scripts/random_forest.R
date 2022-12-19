@@ -458,7 +458,8 @@ gg_turb <- dato_turb2 |>
   theme(
     aspect.ratio = 1,
     plot.background = element_rect(fill = "ivory", color = NA),
-    plot.caption = element_markdown(family = "inter", size = 6)
+    plot.caption = element_markdown(family = "inter", size = 6,
+                                    color = "lightgrey")
   )
 
 ggsave(plot = gg_turb,
@@ -467,11 +468,3 @@ ggsave(plot = gg_turb,
        height = 10,
        units = "cm",
        dpi = 300)
-
-# intervalo de confianza?
-# browseURL("http://optimumsportsperformance.com/blog/confidence-intervals-for-random-forest-regression-using-tidymodels-sort-of/")
-# browseURL("https://stats.stackexchange.com/questions/56895/do-the-predictions-of-a-random-forest-model-have-a-prediction-interval")
-
-# vetiver -----------------------------------------------------------------
-
-# browseURL("https://vetiver.rstudio.com/")
