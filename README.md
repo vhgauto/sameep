@@ -22,9 +22,7 @@ El entrenamiento del modelo se realizó con datos históricos provistos por SAME
 
 Los hiperparámetros del modelo fueron optimizados mediante la técnica de búsqueda en cuadrícula (*grid search*).
 
-[GitHub Actions](https://docs.github.com/es/actions) permite la ejecución automática de los scripts del presente repositorio.
-
-Los scripts llevan a cabo las siguientes tareas:
+[GitHub Actions](https://docs.github.com/es/actions) permite la ejecución automática de los scripts, que llevan a cabo las siguientes tareas:
 
 - Descarga del producto Sentinel-2 MSI, nivel de procesamiento L2A, tile 21JUK, del día de la fecha. Se emplea la [API](https://documentation.dataspace.copernicus.eu/APIs/OData.html) de Copernicus Data Space Ecosystem.
 - Recorte del producto a la región de interés y generación de un stack con las bandas espectrales de importancia (B01, B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12).
