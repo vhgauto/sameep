@@ -1,0 +1,245 @@
+---
+title: Proyecto Monitoreo GISTAQ 2020
+author: Víctor Gauto
+output: 
+  html_document:
+    includes:
+      in_header: extras/header.html
+email_address: victor.gauto@outlook.com
+github_repo: https://github.com/vhgauto/gistaq_sameep
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300&family=Lato&display=swap" rel="stylesheet">
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
+```
+
+```{r echo = FALSE, message = FALSE}
+library(tidyverse)
+library(lubridate)
+library(ggtext)
+library(glue)
+library(showtext)
+library(plotly)
+
+# tema general de las figuras
+theme_set(theme_bw())
+
+# fuentes
+font_add(family = "playfair", regular = "extras/PlayfairDisplay.ttf") # título
+font_add(family = "victor", regular = "extras/VictorMono.ttf") # números de eje
+font_add(family = "ubuntu", regular = "extras/Ubuntu.ttf") # resto del texto
+
+showtext_auto()
+showtext_opts(dpi = 300)
+
+# datos SAMEEP, solo me interesa turbidez (NTU)
+sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
+  filter(param == "turbidez") |>
+  select(-param, fecha, turb = valor)
+
+# datos GIS, obtenidos de GEE
+# https://code.earthengine.google.com/?scriptPath=users%2Fvhgauto%2FGISTAQ%3Asameep_historico
+gee <- read_tsv("datos/base_de_datos_gis.tsv")
+
+# acomodo los datos, columnas -> bandas/turb/fecha
+gee_tidy <- gee |>
+  pivot_wider(names_from = banda, values_from = reflec) |>
+  unnest(cols = everything())
+
+# máx eje vertical
+turb_m <- max(sameep_tidy$turb) |> round(digits = -2)
+
+# máx eje horizontal
+fecha_m <- max(gee_tidy$fecha) |> ceiling_date(unit = "month")
+
+# creo la carpeta para almacenar la firma espectral
+dir.create("figuras")
+
+# base de datos de turb estimados
+t_p2 <- read_tsv("datos/turb_pred.tsv")
+
+fecha_turb <- read_tsv("datos/datos_nuevos.tsv") |>
+  distinct(fecha) |>
+  pull(fecha)
+
+# último dato turb estimado
+dato_turb2 <- t_p2 |>
+  filter(fecha == fecha_turb) |>
+  mutate(l = format(round(.pred, 1), nsmall = 1)) |>
+  mutate(l = sub(pattern = "\\.", replacement = ",", x = l)) |>
+  pull(l)
+
+# FIGURA
+t_p3 <- t_p2 |>
+  mutate(
+    p = format(round(.pred, 1), nsmall = 1) |>
+      as.character() |>
+      sub("\\.", ",", x = _)) |>  # nolint
+  mutate(texto = glue("{format(fecha, '%d/%m/%Y')}\n{p} NTU"))
+
+# límite eje vertical máximo
+t1 <- max(t_p3$.pred) - max(t_p3$.pred) %% 100 + 100
+# límite eje horizontal máximo, fecha más actual
+fe2 <- ceiling_date(max(t_p3$fecha), "month")
+# límite eje horizontal mínimo, dos años previos a la fecha actual
+fe1 <- floor_date(fe2 - years(1), "month")
+# fecha y hora de la figura
+fyh <- glue(
+  "{format(now(tzone = 'America/Argentina/Buenos_Aires'), '%d/%m/%Y %T')}")
+
+mes_p <- c(
+  "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep",
+  "Oct", "Nov", "Dic")
+
+eje_x_fecha <- tibble(rango = seq.Date(fe1, fe2, "1 month")) |>
+  mutate(anio = year(rango)) |>
+  group_by(anio) |>
+  mutate(anio1 = if_else(row_number() == 1, as.character(anio), "")) |>
+  mutate(mes = month(rango)) |>
+  mutate(mes_p = mes_p[mes]) |>
+  mutate(lab = glue("{mes_p}\n{anio1}")) |>
+  pull(lab)
+
+g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
+  # tendencia
+  stat_smooth(
+    geom = "line", alpha = .8, color = "steelblue",
+    se = FALSE, lineend = "round", formula = y ~ x,
+    method = "loess", linewidth = 2) +
+  # puntos
+  geom_point(
+    color = "#FC8D59", size = 2, alpha = .5, shape = 19, aes(text = texto)) +
+  # manual
+  scale_x_continuous(
+    breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
+    expand = c(0, 0)) +
+  scale_y_continuous(
+    limits = c(0, t1), expand = c(0, 0), breaks = seq(0, t1, 100)) +
+  # ejes
+  labs(
+    y = "Turbidez (NTU)",
+    x = NULL,
+    subtitle = glue(
+      "Un a\u00F1o de datos. Actualizado al {format(fecha_turb, '%d/%m/%y')}"),
+    color = NULL)+
+  coord_cartesian(xlim = c(fe1, fe2)) +
+  theme_classic() +
+  theme(
+    aspect.ratio = .6,
+    axis.text = element_text(
+      color = "black", family = "victor", margin = margin(0, 2, 0,20), 
+      size = 10, hjust = .5),
+    axis.title.y = element_text(
+      size = 16, margin = margin(0, 40, 0, 0), family = "ubuntu"),
+    axis.ticks = element_line(),
+    panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
+    panel.background = element_rect(fill = "ivory"),
+    legend.position = c(.8, 1),
+    legend.justification = c(-.05, 1.05),
+    legend.text = element_text(family = "ubuntu"),
+    legend.key.height = unit(0, "line"),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.key = element_blank(),
+    legend.direction = "vertical",
+    legend.background = element_rect(
+      fill = "ivory", linetype = 2, color = "darkgrey", linewidth = .1),
+    plot.title = element_markdown(family = "playfair", size = 14),
+    plot.title.position = "plot",
+    plot.subtitle = element_markdown(family = "ubuntu", size = 8),
+    plot.caption = element_markdown(family = "ubuntu", size = 6),
+    plot.margin = margin(25, 5, 60, 5),
+    plot.background = element_rect(fill = "ivory")
+  )
+
+# gp_caption <- glue("Los <b style='color:#FC8D59'>puntos en naranja</b> son los valores individuales estimados.<br>La <b style='color:steelblue'>l\u00EDnea en azul</b> es la tendencia global.")
+
+# gp_title <- "Estimaci\u00F3n de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b>"
+```
+
+```{css echo = FALSE}
+.author, .title {
+    display: none;
+}
+
+.main-container {
+    max-width: 50%;
+}
+
+body {
+    background-color: ivory;
+    color: black;
+    font-size: 1.2vw;
+    font-family: "ubuntu", sans-serif;
+}
+
+```
+
+<br>
+<!-- última estimación de turbidez ddisponible -->
+<center style="font-size:3em; align:center">Turbidez = `r dato_turb2` NTU</center>
+
+<!-- pequeño espacio entre líneas -->
+<center style="font-size:.5em; align:center"><br></center>
+
+<!-- fecha -->
+<center style="font-size:1em; color:grey; align:center">`r format(fecha_turb, "%d/%m/%Y")`</center>
+
+<br>
+
+<center>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
+
+```{r, echo=FALSE}
+
+gp <- ggplotly(g1, tooltip = "text") |>
+  layout(
+    width = 850,
+    height = 500,
+    hoverlabel = list(
+      bgcolor = "ivory",
+      bordercolor = "#FC8D59",
+      font = list(color = "steelblue", size = 14)),
+    # remuevo el zoom, dejando la figura estática
+    xaxis = list(
+      fixedrange = TRUE, tickfont = list(family = "Mono", size = 20)),
+    yaxis = list(
+      fixedrange = TRUE, tickfont = list(family = "Mono", size = 20))) |>
+  # remuevo los controles
+  config(displayModeBar = FALSE)
+
+gp
+```
+
+<p style="text-align:Right; font-size:.75em">Los <b style='color:#FC8D59'>
+puntos</b> son los valores individuales estimados.
+<br>
+La <b style='color:steelblue'>línea</b> es la tendencia global.
+</p>
+
+:::: {.columns}
+
+<!-- ESPACIOS DE SEPARACIÓN -->
+<br>
+<br>
+<br>
+
+::: {.column width="70%"}
+Última actualización realizada el `r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`  
+Sitio web [desarrollado](`r rmarkdown::metadata$github_repo`){target="_blank"} por [Mgtr. Víctor Gauto](mailto:`r rmarkdown::metadata$email_address`){target="_blank"}
+:::
+
+::: {.column width="10%"}
+
+:::
+
+::: {.column width="20%"}
+
+[![](extras/gistaq_logo.png)](https://www.facebook.com/GISTAQ){fig-align="right" height=10% target="_blank"}
+
+:::
+
+::::
