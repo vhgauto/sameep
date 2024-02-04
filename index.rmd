@@ -6,7 +6,7 @@ output:
     includes:
       in_header: extras/header.html
 email_address: victor.gauto@outlook.com
-github_repo: https://github.com/vhgauto/gistaq_sameep
+github_repo: https://github.com/vhgauto/sameep
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -184,7 +184,7 @@ body {
 <center style="font-size:3em; align:center">Turbidez = `r dato_turb2` NTU</center>
 
 <!-- pequeño espacio entre líneas -->
-<center style="font-size:.5em; align:center"><br></center>
+<center style="font-size:.1em; align:center"><br></center>
 
 <!-- fecha -->
 <center style="font-size:1em; color:grey; align:center">`r format(fecha_turb, "%d/%m/%Y")`</center>
@@ -222,14 +222,16 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 :::: {.columns}
 
-<!-- ESPACIOS DE SEPARACIÓN -->
 <br>
 <br>
 <br>
 
 ::: {.column width="70%"}
-Última actualización realizada el `r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`  
-Sitio web [desarrollado](`r rmarkdown::metadata$github_repo`){target="_blank"} por [Mgtr. Víctor Gauto](mailto:`r rmarkdown::metadata$email_address`){target="_blank"}
+
+<p style='color:grey;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
+
+Ver en [<img src='extras/github.png' width='25'></img>](`r rmarkdown::metadata$github_repo`){target="_blank"}
+
 :::
 
 ::: {.column width="10%"}
