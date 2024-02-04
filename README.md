@@ -4,7 +4,7 @@ El **Grupo de Investigación Sobre Temas Ambientas y Químicos** ([GISTAQ](https
 
 Dicho algoritmo combina datos de laboratorio con técnicas de teledetección mediante plataformas satelitales y aprendizaje automático. Todas las herramientas empleadas son de código libre, abierto y gratuito.
 
-La empresa adoptante es **Servicio de Agua y Mantenimiento Empresa del Estado Provincial** ([SAMEEP](https://sameep.gob.ar/)), que a colaborado activamente el presente projecto.
+La empresa adoptante es **Servicio de Agua y Mantenimiento Empresa del Estado Provincial** ([SAMEEP](https://sameep.gob.ar/)), que a colaborado activamente en el presente projecto.
 
 ## Descripción del repositorio
 
