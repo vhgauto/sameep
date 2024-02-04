@@ -8,7 +8,7 @@ La empresa adoptante es **Servicio de Agua y Mantenimiento Empresa del Estado Pr
 
 ## Descripción del repositorio
 
-El repositorio contiene los scripts para la descarga de los productos satelitales, extracción y almacentamiento de datos espectrales, generación del algoritmo, obtención del valor estimado de turbidez en el agua y creación del sitio web para visualizar los resultados.
+El repositorio contiene los scripts para la descarga de los productos satelitales, extracción y almacenamiento de datos espectrales, generación del algoritmo, obtención del valor estimado de turbidez en el agua y creación del sitio web para visualizar los resultados.
 
 Los datos satelitales provienen de la plataforma espacial **Sentinel-2**, desarrollada por la Agencia Espacial Europea. El producto utilizado es [L2A](https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-2-msi/processing-levels/level-2), en reflectancia de superficie, con corrección atmosférica automática.
 
