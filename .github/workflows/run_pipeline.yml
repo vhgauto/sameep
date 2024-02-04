@@ -1,4 +1,4 @@
-name: Ejecuto el Proyecto GISTAQ-SAMEEP
+name: Proyecto GISTAQ-SAMEEP
 run-name: ${{ github.actor }} está ejecutando snakemake 🐍
 on: [push]
   # schedule:
