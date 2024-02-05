@@ -1,6 +1,6 @@
 # Proyecto GISTAQ-SAMEEP 2021
 
-El **Grupo de Investigación Sobre Temas Ambientas y Químicos** ([GISTAQ](https://www.facebook.com/GISTAQ/)), perteneciente a la Universidad **Tecnológica Nacional Facultad Regional Resistencia** ([UTN-FRRe](https://www.frre.utn.edu.ar/)), en el marco del proyecto de investigación "Caracterización fisicoquímica de cuerpos de aguas continentales para la evaluación de la utilización de algoritmos en el monitoreo satelital de la calidad del agua" (MSPPBRE0008091), logró el desarrollo de un algoritmo para la estimación de turbidez en el agua de ingreso a la planta de tratamiento de La Toma, ciudad de Barranqueras, Provincia del Chaco, Argentina.
+El **Grupo de Investigación Sobre Temas Ambientas y Químicos** ([GISTAQ](https://www.facebook.com/GISTAQ/)), perteneciente a la **Universidad Tecnológica Nacional Facultad Regional Resistencia** ([UTN-FRRe](https://www.frre.utn.edu.ar/)), en el marco del proyecto de investigación "Caracterización fisicoquímica de cuerpos de aguas continentales para la evaluación de la utilización de algoritmos en el monitoreo satelital de la calidad del agua" (MSPPBRE0008091), logró el desarrollo de un algoritmo para la estimación de turbidez en el agua de ingreso a la planta de tratamiento de La Toma, ciudad de Barranqueras, Provincia del Chaco, Argentina.
 
 Dicho algoritmo combina datos de laboratorio con técnicas de teledetección mediante plataformas satelitales y aprendizaje automático. Todas las herramientas empleadas son de código libre, abierto y gratuito.
 
