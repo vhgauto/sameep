@@ -9,33 +9,31 @@ email_address: victor.gauto@outlook.com
 github_repo: https://github.com/vhgauto/sameep
 ---
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300&family=Lato&display=swap" rel="stylesheet">
+<!-- ubuntu -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+</style>
 
+<!-- victor -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Victor+Mono:wght@100&display=swap');
+</style>
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
 ```
 
 ```{r echo = FALSE, message = FALSE}
+
+# paquetes
 library(tidyverse)
 library(lubridate)
 library(ggtext)
 library(glue)
-library(showtext)
 library(plotly)
 
 # tema general de las figuras
 theme_set(theme_bw())
-
-# fuentes
-font_add(family = "playfair", regular = "extras/PlayfairDisplay.ttf") # título
-font_add(family = "victor", regular = "extras/VictorMono.ttf") # números de eje
-font_add(family = "ubuntu", regular = "extras/Ubuntu.ttf") # resto del texto
-
-showtext_auto()
-showtext_opts(dpi = 300)
 
 # datos SAMEEP, solo me interesa turbidez (NTU)
 sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
@@ -80,7 +78,7 @@ t_p3 <- t_p2 |>
     p = format(round(.pred, 1), nsmall = 1) |>
       as.character() |>
       sub("\\.", ",", x = _)) |>  # nolint
-  mutate(texto = glue("{format(fecha, '%d/%m/%Y')}\n{p} NTU"))
+  mutate(texto = glue("{p} NTU\n{format(fecha, '%d/%m/%Y')}"))
 
 # límite eje vertical máximo
 t1 <- max(t_p3$.pred) - max(t_p3$.pred) %% 100 + 100
@@ -105,6 +103,7 @@ eje_x_fecha <- tibble(rango = seq.Date(fe1, fe2, "1 month")) |>
   mutate(lab = glue("{mes_p}\n{anio1}")) |>
   pull(lab)
 
+# figura
 g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
   # tendencia
   stat_smooth(
@@ -124,8 +123,6 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
   labs(
     y = "Turbidez (NTU)",
     x = NULL,
-    subtitle = glue(
-      "Un a\u00F1o de datos. Actualizado al {format(fecha_turb, '%d/%m/%y')}"),
     color = NULL)+
   coord_cartesian(xlim = c(fe1, fe2)) +
   theme_classic() +
@@ -135,30 +132,23 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
       color = "black", family = "victor", margin = margin(0, 2, 0,20), 
       size = 10, hjust = .5),
     axis.title.y = element_text(
-      size = 16, margin = margin(0, 40, 0, 0), family = "ubuntu"),
+      size = 16, margin = margin(0, 40, 0, 0)),
     axis.ticks = element_line(),
     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
     panel.background = element_rect(fill = "ivory"),
     legend.position = c(.8, 1),
     legend.justification = c(-.05, 1.05),
-    legend.text = element_text(family = "ubuntu"),
+    legend.text = element_text(),
     legend.key.height = unit(0, "line"),
     legend.margin = margin(0, 0, 0, 0),
     legend.key = element_blank(),
     legend.direction = "vertical",
     legend.background = element_rect(
       fill = "ivory", linetype = 2, color = "darkgrey", linewidth = .1),
-    plot.title = element_markdown(family = "playfair", size = 14),
-    plot.title.position = "plot",
-    plot.subtitle = element_markdown(family = "ubuntu", size = 8),
-    plot.caption = element_markdown(family = "ubuntu", size = 6),
     plot.margin = margin(25, 5, 60, 5),
     plot.background = element_rect(fill = "ivory")
   )
 
-# gp_caption <- glue("Los <b style='color:#FC8D59'>puntos en naranja</b> son los valores individuales estimados.<br>La <b style='color:steelblue'>l\u00EDnea en azul</b> es la tendencia global.")
-
-# gp_title <- "Estimaci\u00F3n de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b>"
 ```
 
 ```{css echo = FALSE}
@@ -174,48 +164,55 @@ body {
     background-color: ivory;
     color: black;
     font-size: 1.2vw;
-    font-family: "ubuntu", sans-serif;
 }
 
 ```
 
 <br>
 <!-- última estimación de turbidez ddisponible -->
-<center style="font-size:3em; align:center">Turbidez = `r dato_turb2` NTU</center>
+<center style="font-size:3em; font-family: Ubuntu;">Turbidez = `r dato_turb2` NTU</center>
 
 <!-- pequeño espacio entre líneas -->
-<center style="font-size:.1em; align:center"><br></center>
+<center style="font-size:.1em;"><br></center>
 
 <!-- fecha -->
-<center style="font-size:1em; color:grey; align:center">`r format(fecha_turb, "%d/%m/%Y")`</center>
+<center style="font-size:.8em; color:grey; font-family: Victor Mono;">`r format(fecha_turb, "%d/%m/%Y")`</center>
 
 <br>
 
-<center>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
+<center style='font-family: Ubuntu'>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
 
 ```{r, echo=FALSE}
 
+# https://plotly.com/r/axes/
+
+# construyo figura interactiva
 gp <- ggplotly(g1, tooltip = "text") |>
   layout(
-    width = 850,
     height = 500,
     hoverlabel = list(
       bgcolor = "ivory",
       bordercolor = "#FC8D59",
-      font = list(color = "steelblue", size = 14)),
-    # remuevo el zoom, dejando la figura estática
+      font = list(color = "steelblue", size = 14, family = "Ubuntu")),
     xaxis = list(
-      fixedrange = TRUE, tickfont = list(family = "Mono", size = 20)),
+      fixedrange = TRUE,
+      tickfont = list(family = "Victor Mono", size = 17)),
     yaxis = list(
-      fixedrange = TRUE, tickfont = list(family = "Mono", size = 20))) |>
+      fixedrange = TRUE,
+      tickfont = list(family = "Victor Mono", size = 17),
+      title = list(
+        font = list(size = 22, family = "Ubuntu"),
+        standoff = 25))
+  ) |>
   # remuevo los controles
   config(displayModeBar = FALSE)
-
-gp
 ```
 
-<p style="text-align:Right; font-size:.75em">Los <b style='color:#FC8D59'>
-puntos</b> son los valores individuales estimados.
+<!-- figura interactiva -->
+`r gp`
+
+<p style="text-align:Right; font-size:.75em; font-family: Ubuntu;">
+Los <b style='color:#FC8D59'> puntos</b> son los valores individuales estimados.
 <br>
 La <b style='color:steelblue'>línea</b> es la tendencia global.
 </p>
@@ -228,9 +225,9 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 ::: {.column width="70%"}
 
-<p style='color:grey;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
+<p style='font-size:.8em; color:grey; font-family: Victor Mono;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
 
-Ver en [<img src='extras/github.png' width='25'></img>](`r rmarkdown::metadata$github_repo`){target="_blank"}
+<p style='font-family: Ubuntu;'>Ver en [<img src='extras/github.png' width='25'></img>](`r rmarkdown::metadata$github_repo`){target="_blank"}</p>
 
 :::
 
