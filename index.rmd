@@ -27,6 +27,24 @@ github_repo: https://github.com/vhgauto/sameep
 }
 ```
 
+<!-- ubicación de los elementos en el html -->
+```{css echo = FALSE}
+.author, .title {
+    display: none;
+}
+
+.main-container {
+    max-width: 50%;
+}
+
+body {
+    background-color: ivory;
+    color: black;
+    font-size: 1.2vw;
+}
+
+```
+
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
 ```
@@ -120,7 +138,7 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
     method = "loess", linewidth = 2) +
   # puntos
   geom_point(
-    color = "#FC8D59", size = 2, alpha = .5, shape = 19, aes(text = texto)) +
+    color = "#FC8D59", size = 2, alpha = .8, shape = 19, aes(text = texto)) +
   # manual
   scale_x_continuous(
     breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
@@ -135,7 +153,7 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
   coord_cartesian(xlim = c(fe1, fe2)) +
   theme_classic() +
   theme(
-    aspect.ratio = .6,
+    aspect.ratio = 1,
     axis.text = element_text(
       color = "black", family = "victor", margin = margin(0, 2, 0,20), 
       size = 10, hjust = .5),
@@ -144,51 +162,11 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
     axis.ticks = element_line(),
     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
     panel.background = element_rect(fill = "ivory"),
-    legend.position = c(.8, 1),
-    legend.justification = c(-.05, 1.05),
-    legend.text = element_text(),
-    legend.key.height = unit(0, "line"),
-    legend.margin = margin(0, 0, 0, 0),
-    legend.key = element_blank(),
-    legend.direction = "vertical",
-    legend.background = element_rect(
-      fill = "ivory", linetype = 2, color = "darkgrey", linewidth = .1),
     plot.margin = margin(25, 5, 60, 5),
-    plot.background = element_rect(fill = "ivory")
+    plot.background = element_rect(fill = NA)
   )
 
 ```
-
-```{css echo = FALSE}
-.author, .title {
-    display: none;
-}
-
-.main-container {
-    max-width: 50%;
-}
-
-body {
-    background-color: ivory;
-    color: black;
-    font-size: 1.2vw;
-}
-
-```
-
-<br>
-<!-- última estimación de turbidez ddisponible -->
-<center style="font-size:3em; font-family: Ubuntu;">Turbidez = `r dato_turb2` NTU</center>
-
-<!-- pequeño espacio entre líneas -->
-<center style="font-size:.1em;"><br></center>
-
-<!-- fecha -->
-<center style="font-size:.8em; color:grey; font-family: Victor Mono;">`r format(fecha_turb, "%d/%m/%Y")`</center>
-
-<br>
-
-<center style='font-family: Ubuntu'>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
 
 ```{r, echo=FALSE}
 
@@ -216,8 +194,25 @@ gp <- ggplotly(g1, tooltip = "text") |>
   config(displayModeBar = FALSE)
 ```
 
+<br>
+<!-- última estimación de turbidez ddisponible -->
+<center style="font-size:3em; font-family: Ubuntu;">Turbidez = `r dato_turb2` NTU</center>
+
+<!-- pequeño espacio entre líneas -->
+<center style="font-size:.1em;"><br></center>
+
+<!-- fecha -->
+<center style="font-size:.8em; color:grey; font-family: Victor Mono;">`r format(fecha_turb, "%d/%m/%Y")`</center>
+
+<br>
+
+<center style='font-family: Ubuntu'>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
+
 <!-- figura interactiva -->
 `r gp`
+
+<!-- pequeño espacio entre líneas -->
+<p style="font-size:.1em;"><br></p>
 
 <p style="text-align:Right; font-size:.75em; font-family: Ubuntu;">
 Los <b style='color:#FC8D59'> puntos</b> son los valores individuales estimados.
