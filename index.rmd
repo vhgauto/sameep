@@ -19,6 +19,14 @@ github_repo: https://github.com/vhgauto/sameep
   @import url('https://fonts.googleapis.com/css2?family=Victor+Mono:wght@100&display=swap');
 </style>
 
+<!-- fontawesome -->
+```{css echo = FALSE}
+@font-face {
+    font-family: fa-brands;
+    src: url(extras/fa-brands-400.ttf);
+}
+```
+
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
 ```
@@ -227,8 +235,7 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 <p style='font-size:.8em; color:grey; font-family: Victor Mono;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
 
-<p style='font-family: Ubuntu;'>Ver en [<img src='extras/github.png' width='25'></img>](`r rmarkdown::metadata$github_repo`){target="_blank"}</p>
-
+<p style='font-family: Ubuntu;'>Ver en [<span style='font-family: fa-brands; color: black'>&#xf09b;</span>](`r rmarkdown::metadata$github_repo`){target="_blank"}</p>
 :::
 
 ::: {.column width="10%"}
