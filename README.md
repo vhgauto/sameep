@@ -35,7 +35,7 @@ Los hiperparámetros del modelo fueron optimizados mediante la técnica de búsq
 
 La herramienta [Snakemake](https://snakemake.github.io/) permite la gestión del *workflow*, para asegurar la reproducibilidad y la correcta ejecución de los scripts en el orden adecuado.
 
-El valor estimado de turbidez actualizado correspondiente a la última fecha disponible se encuentra a continuación.
+El valor estimado de turbidez actualizado correspondiente a la última fecha disponible se encuentra en el siguiente enlace.
 
 ## <center>[LINK](https://vhgauto.github.io/sameep/)</center>
 
