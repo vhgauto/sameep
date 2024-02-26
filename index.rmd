@@ -33,9 +33,9 @@ github_repo: https://github.com/vhgauto/sameep
     display: none;
 }
 
-/* .main-container {
+.main-container {
     max-width: 50%;
-} */
+}
 
 body {
     background-color: ivory;
@@ -176,7 +176,7 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
   # puntos
   geom_point_interactive(
     aes(tooltip = texto, data_id = texto),
-    color = "#FC8D59", size = 2, alpha = .8, shape = 19, hover_nearest = TRUE) +
+    color = "#FC8D59", size = 2.5, alpha = .8, shape = 19, hover_nearest = TRUE) +
   # manual
   scale_x_continuous(
     breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
@@ -195,7 +195,8 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
     axis.text = element_text(
       color = "black", family = "Victor Mono", margin = margin(0, 2, 0,20), 
       size = 10, hjust = .5),
-      axis.text.x = element_text(margin = margin(t = 8)),
+    axis.text.x = element_text(margin = margin(t = 8)),
+    axis.text.y = element_text(vjust = 0),
     axis.title.y = element_text(
       size = 16, margin = margin(0, 0, 0, 0), angle = 90, family = "Ubuntu"),
     # axis.ticks = element_line(),
@@ -271,7 +272,7 @@ gp <- girafe(
 `r gp`
 
 <!-- pequeño espacio entre líneas -->
-<p style="font-size:.1em;"><br></p>
+<!-- <p style="font-size:.1em;"><br></p> -->
 
 <p style="text-align:Right; font-size:.75em; font-family: Ubuntu;">
 Los <b style='color:#FC8D59'> puntos</b> son los valores individuales estimados.
@@ -281,8 +282,8 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 :::: {.columns}
 
-<br>
-<br>
+<!-- <br>
+<br> -->
 <br>
 
 ::: {.column width="70%"}
