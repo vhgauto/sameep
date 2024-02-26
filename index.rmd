@@ -52,11 +52,11 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
 ```{r echo = FALSE, message = FALSE}
 
 # paquetes
-library(tidyverse)
 library(lubridate)
 library(ggtext)
 library(glue)
 library(plotly)
+library(tidyverse)
 
 # tema general de las figuras
 theme_set(theme_bw())
