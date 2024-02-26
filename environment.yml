@@ -10,10 +10,10 @@ dependencies:
   # R
   - r-base=4.2.3
   - r-doparallel=1.0.17
-  # - r-ggiraph=0.8.7
+  - r-ggiraph=0.8.7
   - r-ggtext=0.1.2
   - r-metrics=0.1.4
-  - r-plotly=4.10.1
+  # - r-plotly=4.10.1
   - r-randomforest=4.7_1.1
   - r-ranger=0.14.1
   - r-showtext=0.9_5
