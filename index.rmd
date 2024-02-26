@@ -33,9 +33,9 @@ github_repo: https://github.com/vhgauto/sameep
     display: none;
 }
 
-.main-container {
+/* .main-container {
     max-width: 50%;
-}
+} */
 
 body {
     background-color: ivory;
@@ -56,6 +56,7 @@ library(lubridate)
 library(ggtext)
 library(glue)
 library(plotly)
+library(ggiraph)
 library(tidyverse)
 
 # tema general de las figuras
@@ -104,7 +105,7 @@ t_p3 <- t_p2 |>
     p = format(round(.pred, 1), nsmall = 1) |>
       as.character() |>
       sub("\\.", ",", x = _)) |>  # nolint
-  mutate(texto = glue("{p} NTU\n{format(fecha, '%d/%m/%Y')}"))
+  mutate(texto = glue("{p} NTU<br>{format(fecha, '%d/%m/%Y')}"))
 
 # límite eje vertical máximo
 t1 <- max(t_p3$.pred) - max(t_p3$.pred) %% 100 + 100
@@ -130,6 +131,42 @@ eje_x_fecha <- tibble(rango = seq.Date(fe1, fe2, "1 month")) |>
   pull(lab)
 
 # figura
+# g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
+#   # tendencia
+#   stat_smooth(
+#     geom = "line", alpha = .8, color = "steelblue",
+#     se = FALSE, lineend = "round", formula = y ~ x,
+#     method = "loess", linewidth = 2) +
+#   # puntos
+#   geom_point(
+#     color = "#FC8D59", size = 2, alpha = .8, shape = 19, aes(text = texto)) +
+#   # manual
+#   scale_x_continuous(
+#     breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
+#     expand = c(0, 0)) +
+#   scale_y_continuous(
+#     limits = c(0, t1), expand = c(0, 0), breaks = seq(0, t1, 100)) +
+#   # ejes
+#   labs(
+#     y = "Turbidez (NTU)",
+#     x = NULL,
+#     color = NULL)+
+#   coord_cartesian(xlim = c(fe1, fe2)) +
+#   theme_classic() +
+#   theme(
+#     aspect.ratio = 1,
+#     axis.text = element_text(
+#       color = "black", family = "victor", margin = margin(0, 2, 0,20), 
+#       size = 10, hjust = .5),
+#     axis.title.y = element_text(
+#       size = 16, margin = margin(0, 40, 0, 0)),
+#     axis.ticks = element_line(),
+#     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
+#     panel.background = element_rect(fill = "ivory"),
+#     plot.margin = margin(25, 5, 60, 5),
+#     plot.background = element_rect(fill = NA)
+#   )
+
 g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
   # tendencia
   stat_smooth(
@@ -137,8 +174,9 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
     se = FALSE, lineend = "round", formula = y ~ x,
     method = "loess", linewidth = 2) +
   # puntos
-  geom_point(
-    color = "#FC8D59", size = 2, alpha = .8, shape = 19, aes(text = texto)) +
+  geom_point_interactive(
+    aes(tooltip = texto, data_id = texto),
+    color = "#FC8D59", size = 2, alpha = .8, shape = 19, hover_nearest = TRUE) +
   # manual
   scale_x_continuous(
     breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
@@ -151,21 +189,21 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
     x = NULL,
     color = NULL)+
   coord_cartesian(xlim = c(fe1, fe2)) +
-  theme_classic() +
+  theme_void() +
   theme(
-    aspect.ratio = 1,
+    aspect.ratio = .6,
     axis.text = element_text(
-      color = "black", family = "victor", margin = margin(0, 2, 0,20), 
+      color = "black", family = "Victor Mono", margin = margin(0, 2, 0,20), 
       size = 10, hjust = .5),
+      axis.text.x = element_text(margin = margin(t = 8)),
     axis.title.y = element_text(
-      size = 16, margin = margin(0, 40, 0, 0)),
-    axis.ticks = element_line(),
+      size = 16, margin = margin(0, 0, 0, 0), angle = 90, family = "Ubuntu"),
+    # axis.ticks = element_line(),
     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
-    panel.background = element_rect(fill = "ivory"),
-    plot.margin = margin(25, 5, 60, 5),
-    plot.background = element_rect(fill = NA)
+    # panel.background = element_rect(fill = "ivory"),
+    plot.margin = margin(t = 0, r = 10, b = 0, l = 0),
+    plot.background = element_rect(fill = "ivory", color = NA)
   )
-
 ```
 
 ```{r, echo=FALSE}
@@ -173,25 +211,46 @@ g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
 # https://plotly.com/r/axes/
 
 # construyo figura interactiva
-gp <- ggplotly(g1, tooltip = "text") |>
-  layout(
-    height = 500,
-    hoverlabel = list(
-      bgcolor = "ivory",
-      bordercolor = "#FC8D59",
-      font = list(color = "steelblue", size = 14, family = "Ubuntu")),
-    xaxis = list(
-      fixedrange = TRUE,
-      tickfont = list(family = "Victor Mono", size = 17)),
-    yaxis = list(
-      fixedrange = TRUE,
-      tickfont = list(family = "Victor Mono", size = 17),
-      title = list(
-        font = list(size = 22, family = "Ubuntu"),
-        standoff = 25))
-  ) |>
-  # remuevo los controles
-  config(displayModeBar = FALSE)
+# gp <- ggplotly(g1, tooltip = "text") |>
+#   layout(
+#     height = 500,
+#     hoverlabel = list(
+#       bgcolor = "ivory",
+#       bordercolor = "#FC8D59",
+#       font = list(color = "steelblue", size = 14, family = "Ubuntu")),
+#     xaxis = list(
+#       fixedrange = TRUE,
+#       tickfont = list(family = "Victor Mono", size = 17)),
+#     yaxis = list(
+#       fixedrange = TRUE,
+#       tickfont = list(family = "Victor Mono", size = 17),
+#       title = list(
+#         font = list(size = 22, family = "Ubuntu"),
+#         standoff = 25))
+#   ) |>
+#   # remuevo los controles
+#   config(displayModeBar = FALSE)
+
+gp <- girafe(
+  ggobj = g1,
+  bg = "ivory",
+  options = list(
+    opts_hover(css = girafe_css(
+      css = glue("fill:#FC8D59;stroke:steelblue")
+      # text = glue("fill:gold;stroke:none")
+    )),
+    opts_tooltip(
+      opacity = 1,
+      css = glue(
+        "background-color:ivory;color:steelblue;padding:5px;font-family:Ubuntu;",
+        "font-size:15pt;border-radius:0px;border-style:solid;border-color:#FC8D59"),
+      use_cursor_pos = TRUE,
+      offx = 20,
+      offy = 20),
+    opts_sizing(width = 1, rescale = TRUE),
+    opts_toolbar = opts_toolbar(saveaspng = FALSE),
+    opts_hover_inv(css = "opacity:0.6;")
+  ))
 ```
 
 <br>
