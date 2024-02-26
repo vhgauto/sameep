@@ -167,10 +167,12 @@ eje_x_fecha <- tibble(rango = seq.Date(fe1, fe2, "1 month")) |>
 #     plot.background = element_rect(fill = NA)
 #   )
 
-g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
+g1 <- ggplot(
+  data = filter(t_p3, between(fecha, fe1, fe2)), 
+  aes(x = fecha, y = .pred)) +
   # tendencia
   stat_smooth(
-    geom = "line", alpha = .8, color = "steelblue",
+    geom = "line", alpha = .6, color = "steelblue",
     se = FALSE, lineend = "round", formula = y ~ x,
     method = "loess", linewidth = 2) +
   # puntos
