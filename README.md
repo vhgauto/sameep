@@ -1,3 +1,5 @@
+[![Ejecuto el Proyecto GISTAQ SAMEEP 2020](https://github.com/vhgauto/sameep/actions/workflows/run_pipeline.yml/badge.svg)](https://github.com/vhgauto/sameep/actions/workflows/run_pipeline.yml)
+
 # Proyecto GISTAQ-SAMEEP 2021
 
 El **Grupo de Investigación Sobre Temas Ambientas y Químicos** ([GISTAQ](https://www.facebook.com/GISTAQ/)), perteneciente a la **Universidad Tecnológica Nacional Facultad Regional Resistencia** ([UTN-FRRe](https://www.frre.utn.edu.ar/)), en el marco del proyecto de investigación "Caracterización fisicoquímica de cuerpos de aguas continentales para la evaluación de la utilización de algoritmos en el monitoreo satelital de la calidad del agua" (MSPPBRE0008091), logró el desarrollo de un algoritmo para la estimación de turbidez en el agua de ingreso a la planta de tratamiento de La Toma, ciudad de Barranqueras, Provincia del Chaco, Argentina.
@@ -44,5 +46,3 @@ El valor estimado de turbidez actualizado correspondiente a la última fecha dis
 GISTAQ: [gistaq@ca.frre.utn.edu.ar](mailto:gistaq@ca.frre.utn.edu.ar)  
 Dirección: French 414, Resistencia, Chaco, CP 3500  
 Encargado del repositorio: [Mgrt. Víctor Gauto](mailto:victor.gauto@outlook.com)
-
-[![Ejecuto el Proyecto GISTAQ SAMEEP 2020](https://github.com/vhgauto/sameep/actions/workflows/run_pipeline.yml/badge.svg)](https://github.com/vhgauto/sameep/actions/workflows/run_pipeline.yml)
