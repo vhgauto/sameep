@@ -41,8 +41,11 @@ El valor estimado de turbidez actualizado correspondiente a la última fecha dis
 
 ## <center>[LINK](https://vhgauto.github.io/sameep/)</center>
 
+El desarrollo de este repositorio, las herramientas empleadas y la secuencia de ejecución se encuentra explicada en [esta presentación](https://github.com/vhgauto/sameep/blob/main/seminario_DGSE.pdf).
+
 ## Contacto
 
 GISTAQ: [gistaq@ca.frre.utn.edu.ar](mailto:gistaq@ca.frre.utn.edu.ar)  
 Dirección: French 414, Resistencia, Chaco, CP 3500  
-Encargado del repositorio: [Mgrt. Víctor Gauto](mailto:victor.gauto@outlook.com)
+Encargado del repositorio: [Mgtr. Víctor Gauto](mailto:victor.gauto@ca.frre.utn.edu.ar![Uploading image.png…]()
+)
