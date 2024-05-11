@@ -47,4 +47,4 @@ El desarrollo de este repositorio, las herramientas empleadas y la secuencia de 
 
 GISTAQ: [gistaq@ca.frre.utn.edu.ar](mailto:gistaq@ca.frre.utn.edu.ar)  
 Dirección: French 414, Resistencia, Chaco, CP 3500  
-Encargado del repositorio: [Mgtr. Víctor Gauto](mailto:victor.gauto@ca.frre.utn.edu.ar!)
+Encargado del repositorio: [Mgtr. Víctor Gauto](mailto:victor.gauto@ca.frre.utn.edu.ar)
