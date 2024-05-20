@@ -39,7 +39,11 @@ La herramienta [Snakemake](https://snakemake.github.io/) permite la gestión del
 
 El valor estimado de turbidez actualizado correspondiente a la última fecha disponible se encuentra en el siguiente enlace.
 
-## <center>[LINK](https://vhgauto.github.io/sameep/)</center>
+<span align="center">
+
+## [LINK](https://vhgauto.github.io/sameep/)
+
+</span>
 
 El desarrollo de este repositorio, las herramientas empleadas y la secuencia de ejecución se encuentra explicada en [esta presentación](https://github.com/vhgauto/sameep/blob/main/seminario_DGSE.pdf).
 
