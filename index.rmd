@@ -104,7 +104,8 @@ t_p3 <- t_p2 |>
   mutate(
     p = format(round(.pred, 1), nsmall = 1) |>
       as.character() |>
-      sub("\\.", ",", x = _)) |>  # nolint
+      sub("\\.", ",", x = _)
+    ) |>  # nolint
   mutate(texto = glue("{p} NTU<br>{format(fecha, '%d/%m/%Y')}"))
 
 # límite eje vertical máximo
@@ -292,7 +293,7 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 <p style='font-size:.8em; color:grey; font-family: Victor Mono;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
 
-<p style='font-family: Ubuntu;'>Ver en [<span style='font-family: fa-brands; color: black'>&#xf09b;</span>](`r rmarkdown::metadata$github_repo`){target="_blank"}</p>
+[<span style='font-family: Ubuntu; color: black'>Ver en</span> <span style='font-family: fa-brands; color: black'>&#xf09b;</span>](`r rmarkdown::metadata$github_repo`){target="_blank"}
 :::
 
 ::: {.column width="10%"}
