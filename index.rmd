@@ -302,7 +302,7 @@ La <b style='color:steelblue'>línea</b> es la tendencia global.
 
 ::: {.column width="20%"}
 
-[![](extras/gistaq_logo.png)](https://www.facebook.com/GISTAQ){fig-align="right" height=10% target="_blank"}
+[![](extras/gistaq_logo.png)](https://www.instagram.com/gistaq.utn/){fig-align="right" height=10% target="_blank"}
 
 :::
 
