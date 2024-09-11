@@ -2,7 +2,7 @@ name: Proyecto GISTAQ-SAMEEP
 run-name: ${{ github.actor }} está ejecutando Snakemake 🐍
 on: # [push]
   schedule:
-  - cron: '0 10 */5 * *'
+    - cron: '0 10 * * *'
 jobs:
   Ejecuto-Proyecto-GISTAQ-SAMEEP-2024:
     runs-on: ubuntu-latest
