@@ -38,7 +38,7 @@ github_repo: https://github.com/vhgauto/sameep
 }
 
 body {
-    background-color: ivory;
+    background-color: #FAFAFA;
     color: black;
     font-size: 1.2vw;
 }
@@ -278,9 +278,9 @@ gp <- girafe(
 <!-- <p style="font-size:.1em;"><br></p> -->
 
 <p style="text-align:Right; font-size:.75em; font-family: Ubuntu;">
-Los <b style='color:#FC8D59'> puntos</b> son los valores individuales estimados.
+Los <b style='color:#FC8D59'> puntos</b> indican los valores individuales estimados.
 <br>
-La <b style='color:steelblue'>línea</b> es la tendencia global.
+La <b style='color:steelblue'>línea</b> muestra la tendencia global.
 </p>
 
 :::: {.columns}
