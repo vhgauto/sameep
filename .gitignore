@@ -2,6 +2,7 @@ safe/
 recortes/
 .snakemake/
 dag.png
+s3.py
 
 # History files
 .Rhistory
