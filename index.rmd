@@ -206,7 +206,7 @@ g1 <- ggplot(
     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
     # panel.background = element_rect(fill = "ivory"),
     plot.margin = margin(t = 0, r = 10, b = 0, l = 0),
-    plot.background = element_rect(fill = "ivory", color = NA)
+    plot.background = element_rect(fill = "#FAFAFA", color = NA)
   )
 ```
 
@@ -237,7 +237,7 @@ g1 <- ggplot(
 
 gp <- girafe(
   ggobj = g1,
-  bg = "ivory",
+  bg = "#FAFAFA",
   options = list(
     opts_hover(css = girafe_css(
       css = glue("fill:#FC8D59;stroke:steelblue")
@@ -246,7 +246,7 @@ gp <- girafe(
     opts_tooltip(
       opacity = 1,
       css = glue(
-        "background-color:ivory;color:steelblue;padding:5px;font-family:Ubuntu;",
+        "background-color:#FAFAFA;color:steelblue;padding:5px;font-family:Ubuntu;",
         "font-size:15pt;border-radius:0px;border-style:solid;border-color:#FC8D59"),
       use_cursor_pos = TRUE,
       offx = 20,
