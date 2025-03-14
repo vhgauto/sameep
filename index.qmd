@@ -1,75 +1,49 @@
 ---
-title: Proyecto Monitoreo GISTAQ 2020
-author: Víctor Gauto
-output: 
-  html_document:
-    includes:
-      in_header: extras/header.html
-email_address: victor.gauto@outlook.com
-github_repo: https://github.com/vhgauto/sameep
+format: 
+  html: 
+    title: Proyecto Monitoreo GISTAQ 2020
+    mainfont: Ubuntu
+    theme: extras/mi_estilo.scss  
+    embed-resources: true
+    include-in-header: 
+      - extras/favicon.html
+execute: 
+  eval: true
+  echo: false
+  warning: false
 ---
 
-<!-- ubuntu -->
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
-</style>
-
-<!-- victor -->
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Victor+Mono:wght@100&display=swap');
-</style>
-
-<!-- fontawesome -->
-```{css echo = FALSE}
-@font-face {
-    font-family: fa-brands;
-    src: url(extras/fa-brands-400.ttf);
-}
-```
-
-<!-- ubicación de los elementos en el html -->
-```{css echo = FALSE}
-.author, .title {
-    display: none;
-}
-
-.main-container {
-    max-width: 50%;
-}
-
-body {
-    background-color: #FAFAFA;
-    color: black;
-    font-size: 1.2vw;
-}
-
-```
-
-```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center")
-```
-
-```{r echo = FALSE, message = FALSE}
-
+```{r}
 # paquetes
 library(lubridate)
 library(ggtext)
 library(glue)
-# library(plotly)
 library(ggiraph)
 library(tidyverse)
+
+# JetBrains Mono
+systemfonts::register_font(
+  name = "JetBrains Mono",
+  plain = "fuentes/JetBrainsMonoNLNerdFontMono-Regular.ttf"
+)
+
+# Ubuntu
+# systemfonts::register_font(
+#   name = "Ubuntu",
+#   plain = "fuentes/Ubuntu-Regular.ttf"
+# )
 
 # tema general de las figuras
 theme_set(theme_bw())
 
 # datos SAMEEP, solo me interesa turbidez (NTU)
-sameep_tidy <- read_tsv("datos/sameep_historicos.tsv") |>
+sameep_tidy <- read_tsv("datos/sameep_historicos.tsv", show_col_types = FALSE) |>
   filter(param == "turbidez") |>
   select(-param, fecha, turb = valor)
 
 # datos GIS, obtenidos de GEE
 # https://code.earthengine.google.com/?scriptPath=users%2Fvhgauto%2FGISTAQ%3Asameep_historico
-gee <- read_tsv("datos/base_de_datos_gis.tsv")
+gee <- read_tsv("datos/base_de_datos_gis.tsv", show_col_types = FALSE)
 
 # acomodo los datos, columnas -> bandas/turb/fecha
 gee_tidy <- gee |>
@@ -131,43 +105,6 @@ eje_x_fecha <- tibble(rango = seq.Date(fe1, fe2, "1 month")) |>
   mutate(lab = glue("{mes_p}\n{anio1}")) |>
   pull(lab)
 
-# figura
-# g1 <- ggplot(data = t_p3, aes(x = fecha, y = .pred)) +
-#   # tendencia
-#   stat_smooth(
-#     geom = "line", alpha = .8, color = "steelblue",
-#     se = FALSE, lineend = "round", formula = y ~ x,
-#     method = "loess", linewidth = 2) +
-#   # puntos
-#   geom_point(
-#     color = "#FC8D59", size = 2, alpha = .8, shape = 19, aes(text = texto)) +
-#   # manual
-#   scale_x_continuous(
-#     breaks = seq.Date(fe1, fe2, "1 month"), labels = eje_x_fecha,
-#     expand = c(0, 0)) +
-#   scale_y_continuous(
-#     limits = c(0, t1), expand = c(0, 0), breaks = seq(0, t1, 100)) +
-#   # ejes
-#   labs(
-#     y = "Turbidez (NTU)",
-#     x = NULL,
-#     color = NULL)+
-#   coord_cartesian(xlim = c(fe1, fe2)) +
-#   theme_classic() +
-#   theme(
-#     aspect.ratio = 1,
-#     axis.text = element_text(
-#       color = "black", family = "victor", margin = margin(0, 2, 0,20), 
-#       size = 10, hjust = .5),
-#     axis.title.y = element_text(
-#       size = 16, margin = margin(0, 40, 0, 0)),
-#     axis.ticks = element_line(),
-#     panel.grid.major = element_line(linewidth = .1, color = "lightgrey"),
-#     panel.background = element_rect(fill = "ivory"),
-#     plot.margin = margin(25, 5, 60, 5),
-#     plot.background = element_rect(fill = NA)
-#   )
-
 g1 <- ggplot(
   data = filter(t_p3, between(fecha, fe1, fe2)), 
   aes(x = fecha, y = .pred)) +
@@ -196,7 +133,7 @@ g1 <- ggplot(
   theme(
     aspect.ratio = .6,
     axis.text = element_text(
-      color = "black", family = "Victor Mono", margin = margin(0, 2, 0,20), 
+      color = "black", family = "JetBrains Mono", margin = margin(0, 2, 0,20), 
       size = 10, hjust = .5),
     axis.text.x = element_text(margin = margin(t = 8)),
     axis.text.y = element_text(vjust = 0),
@@ -208,32 +145,6 @@ g1 <- ggplot(
     plot.margin = margin(t = 0, r = 10, b = 0, l = 0),
     plot.background = element_rect(fill = "#FAFAFA", color = NA)
   )
-```
-
-```{r, echo=FALSE}
-
-# https://plotly.com/r/axes/
-
-# construyo figura interactiva
-# gp <- ggplotly(g1, tooltip = "text") |>
-#   layout(
-#     height = 500,
-#     hoverlabel = list(
-#       bgcolor = "ivory",
-#       bordercolor = "#FC8D59",
-#       font = list(color = "steelblue", size = 14, family = "Ubuntu")),
-#     xaxis = list(
-#       fixedrange = TRUE,
-#       tickfont = list(family = "Victor Mono", size = 17)),
-#     yaxis = list(
-#       fixedrange = TRUE,
-#       tickfont = list(family = "Victor Mono", size = 17),
-#       title = list(
-#         font = list(size = 22, family = "Ubuntu"),
-#         standoff = 25))
-#   ) |>
-#   # remuevo los controles
-#   config(displayModeBar = FALSE)
 
 gp <- girafe(
   ggobj = g1,
@@ -259,17 +170,17 @@ gp <- girafe(
 
 <br>
 <!-- última estimación de turbidez ddisponible -->
-<center style="font-size:3em; font-family: Ubuntu;">Turbidez = `r dato_turb2` NTU</center>
+<center style="font-size:3em;">Turbidez = `r dato_turb2` NTU</center>
 
 <!-- pequeño espacio entre líneas -->
 <center style="font-size:.1em;"><br></center>
 
 <!-- fecha -->
-<center style="font-size:.8em; color:grey; font-family: Victor Mono;">`r format(fecha_turb, "%d/%m/%Y")`</center>
+<center style="font-size:.8em; color:grey; font-family: JetBrains Mono;">`r format(fecha_turb, "%d/%m/%Y")`</center>
 
 <br>
 
-<center style='font-family: Ubuntu'>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
+<center>Estimación de <span style='color:steelblue'>turbidez</span> del agua en el ingreso a <b>La Toma</b></center>
 
 <!-- figura interactiva -->
 `r gp`
@@ -277,7 +188,7 @@ gp <- girafe(
 <!-- pequeño espacio entre líneas -->
 <!-- <p style="font-size:.1em;"><br></p> -->
 
-<p style="text-align:Right; font-size:.75em; font-family: Ubuntu;">
+<p style="text-align:Right; font-size:.75em;">
 Los <b style='color:#FC8D59'> puntos</b> indican los valores individuales estimados.
 <br>
 La <b style='color:steelblue'>línea</b> muestra la tendencia global.
@@ -291,9 +202,12 @@ La <b style='color:steelblue'>línea</b> muestra la tendencia global.
 
 ::: {.column width="70%"}
 
-<p style='font-size:.8em; color:grey; font-family: Victor Mono;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
+<p style='font-size:.8em; color:grey; font-family: JetBrains Mono;'>`r format(now(tzone = "America/Argentina/Buenos_Aires"), "%d/%m/%Y %T")`</p>
 
-[<span style='font-family: Ubuntu; color: black'>Ver en</span> <span style='font-family: fa-brands; color: black'>&#xf09b;</span>](`r rmarkdown::metadata$github_repo`){target="_blank"}
+<!-- [<span style='color: black'>Ver en</span> <span style='font-family: fa-brands; color: black'>&#xf09b;</span>](`r rmarkdown::metadata$github_repo`){target="_blank"} -->
+
+[<span style='color: black'>Ver en</span> {{< fa brands github >}}](https://github.com/vhgauto/sameep)
+
 :::
 
 ::: {.column width="10%"}

@@ -28,5 +28,5 @@ rule render_index:
         "environment.yml"
     shell:
         """
-        R -e "library(rmarkdown); render('{input.rmd}')"
+        quarto render index.qmd
         """
