@@ -20,7 +20,7 @@ rule descarga_y_extraccion:
 
 rule render_index:
     input:
-        rmd = "index.rmd",
+        qmd = "index.qmd",
         png = "figuras/gg_turb__001.png"
     output:
         "index.html"
