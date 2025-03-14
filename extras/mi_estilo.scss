@@ -1,0 +1,28 @@
+/*-- scss:defaults --*/
+
+// Noto Sans
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+// JetBrains Mono
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+/*-- scss:rules --*/
+
+.author, .title {
+    display: none;
+}
+
+.main-container {
+    max-width: 50%;
+}
+
+body {
+    background-color: #FAFAFA;
+    color: black;
+    font-size: 1.2vw;
+}
+
+a {
+    color: black;
+}
+
