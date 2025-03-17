@@ -20,7 +20,7 @@ rule descarga_y_extraccion:
 
 rule render_index:
     input:
-        qmd = "index.qmd",
+        rmd = "index.rmd",
         png = "figuras/gg_turb__001.png"
     output:
         "index.html"
@@ -28,5 +28,5 @@ rule render_index:
         "environment.yml"
     shell:
         """
-        quarto render index.qmd
+        R -e "library(rmarkdown); render('{input.rmd}')"
         """
