@@ -31,7 +31,7 @@ unzip(zipfile = "safe/producto.zip", exdir = "safe/")
 print(glue("\n\n---Producto extraído---\n\n"))
 
 # nombre del producto descargado
-lis <- list.files("safe/", pattern = "SAFE")[1]
+lis <- list.files("safe/", pattern = "SAFE")
 
 # fecha del producto
 hoy <- lis |>
@@ -47,12 +47,8 @@ nube_porc <-
   list.files(
     file.path(
       list.files(
-        file.path("safe", lis, "GRANULE"),
-        full.names = TRUE
-      ), "QI_DATA"
-    ),
-    full.names = TRUE, pattern = "MSK_CLDPRB_20m"
-  )
+        file.path("safe", lis, "GRANULE"), full.names = TRUE), "QI_DATA"),
+          full.names = TRUE, pattern = "MSK_CLDPRB_20m")
 
 # cargo el ráster con los porcetajes de nubes, por píxel
 nube_raster <- terra::rast(nube_porc)
@@ -97,22 +93,18 @@ print(glue("\n\nCargo las bandas de inter\u00E9s\n\n"))
 reso <- list.files(
   file.path(
     list.files(
-      file.path("safe", lis, "GRANULE"),
-      full.names = TRUE
-    ), "IMG_DATA"
-  ),
-  full.names = TRUE
-)
+      file.path("safe", lis, "GRANULE"), full.names = TRUE), "IMG_DATA"),
+        full.names = TRUE)
 
 # orden correcto de las bandas:
 # B01, B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12 [11 elementos]
 lis_1020 <- c(
-  list.files(reso[3], full.names = TRUE)[2], # B01
-  list.files(reso[1], full.names = TRUE)[2:4], # B02, B03, B04
-  list.files(reso[2], full.names = TRUE)[6:8], # B05, B06, B07
-  list.files(reso[1], full.names = TRUE)[5], # B08
-  list.files(reso[2], full.names = TRUE)[11], # B8A
-  list.files(reso[2], full.names = TRUE)[9:10] # B11, B12
+  list.files(reso[3], full.names = TRUE)[2],    # B01
+  list.files(reso[1], full.names = TRUE)[2:4],  # B02, B03, B04
+  list.files(reso[2], full.names = TRUE)[6:8],  # B05, B06, B07
+  list.files(reso[1], full.names = TRUE)[5],    # B08
+  list.files(reso[2], full.names = TRUE)[11],   # B8A
+  list.files(reso[2], full.names = TRUE)[9:10]  # B11, B12
 )
 
 # lista que contiene las bandas ráster
@@ -143,15 +135,12 @@ subset_b11 <- terra::resample(subset[[10]], subset[[2]], method = "near")
 subset_b12 <- terra::resample(subset[[11]], subset[[2]], method = "near")
 
 # creo el stack
-subset_stack <- c(
-  subset_b01, subset_b02, subset_b03, subset_b04, subset_b05,
-  subset_b06, subset_b07, subset_b08, subset_b8a, subset_b11, subset_b12
-)
+subset_stack <- c(subset_b01, subset_b02, subset_b03, subset_b04, subset_b05,
+  subset_b06, subset_b07, subset_b08, subset_b8a, subset_b11, subset_b12)
 
 # nombre correcto de bandas, en el orden adecuado
 nombre_banda <- c(
-  "B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"
-)
+  "B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12")
 
 names(subset_stack) <- nombre_banda
 
@@ -162,9 +151,7 @@ dir.create("recortes")
 print(glue("\n\nEscribo el stack de bandas recortado\n\n"))
 
 terra::writeRaster(
-  subset_stack,
-  filename = "recortes/recorte.tif", overwrite = TRUE
-)
+  subset_stack, filename = "recortes/recorte.tif", overwrite = TRUE)
 
 # EXTRACCIÓN
 
@@ -195,8 +182,7 @@ base2 <- base |>
   pivot_longer(
     cols = -fecha,
     names_to = "banda",
-    values_to = "reflec"
-  ) |>
+    values_to = "reflec") |>
   # premedio diario, por banda
   group_by(fecha, banda) |>
   summarise(reflec = mean(reflec), .groups = "drop") |>
